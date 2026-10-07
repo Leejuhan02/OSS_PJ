@@ -1,0 +1,302 @@
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    background-color: #f5f7fa;
+
+    font-family:
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        sans-serif;
+
+    color: #1f2937;
+}
+
+
+.container {
+    width: 100%;
+    max-width: 760px;
+
+    margin: 0 auto;
+    padding: 60px 20px;
+}
+
+
+/* 상단 제목 */
+
+.page-header {
+    margin-bottom: 30px;
+}
+
+.badge {
+    display: inline-block;
+
+    margin-bottom: 12px;
+
+    padding: 6px 10px;
+
+    border-radius: 6px;
+
+    background-color: #e8efff;
+    color: #3157c8;
+
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.page-header h1 {
+    margin: 0 0 12px;
+
+    font-size: 32px;
+    line-height: 1.3;
+}
+
+.page-header p {
+    margin: 0;
+
+    color: #6b7280;
+
+    line-height: 1.6;
+}
+
+
+/* 큰 카드 */
+
+.card {
+    background-color: white;
+
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+
+    padding: 32px;
+
+    box-shadow:
+        0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+
+/* 각 단계 */
+
+.step {
+    margin-bottom: 32px;
+}
+
+.step:last-child {
+    margin-bottom: 0;
+}
+
+.step-title {
+    display: flex;
+    align-items: flex-start;
+
+    gap: 12px;
+
+    margin-bottom: 18px;
+}
+
+.step-title h2 {
+    margin: 0 0 4px;
+
+    font-size: 18px;
+}
+
+.step-title p {
+    margin: 0;
+
+    color: #6b7280;
+
+    font-size: 14px;
+}
+
+
+/* 번호 */
+
+.step-number {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    width: 30px;
+    height: 30px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    background-color: #3157c8;
+    color: white;
+
+    font-size: 14px;
+    font-weight: 700;
+}
+
+
+/* 파일 선택 */
+
+.file-input {
+    display: none;
+}
+
+.file-label {
+    display: inline-block;
+
+    padding: 10px 16px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    background-color: white;
+
+    cursor: pointer;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.file-label:hover {
+    background-color: #f3f4f6;
+}
+
+
+/* 구분선 */
+
+.divider {
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    margin: 26px 0;
+
+    color: #9ca3af;
+
+    font-size: 13px;
+}
+
+.divider::before,
+.divider::after {
+    content: "";
+
+    flex: 1;
+
+    height: 1px;
+
+    background-color: #e5e7eb;
+}
+
+
+/* 입력창 */
+
+.input-label {
+    display: block;
+
+    margin-bottom: 8px;
+
+    font-size: 14px;
+    font-weight: 600;
+}
+
+textarea {
+    width: 100%;
+
+    padding: 14px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    resize: vertical;
+
+    font-family: Consolas, monospace;
+    font-size: 14px;
+
+    outline: none;
+}
+
+textarea:focus {
+    border-color: #3157c8;
+
+    box-shadow:
+        0 0 0 3px rgba(49, 87, 200, 0.1);
+}
+
+
+/* 라이선스 선택 */
+
+select {
+    width: 100%;
+
+    padding: 12px;
+
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+
+    background-color: white;
+
+    font-size: 14px;
+
+    cursor: pointer;
+
+    outline: none;
+}
+
+select:focus {
+    border-color: #3157c8;
+}
+
+
+/* 분석 버튼 */
+
+.analyze-button {
+    width: 100%;
+
+    padding: 14px;
+
+    border: none;
+    border-radius: 8px;
+
+    background-color: #3157c8;
+    color: white;
+
+    font-size: 15px;
+    font-weight: 700;
+
+    cursor: pointer;
+}
+
+.analyze-button:hover {
+    background-color: #2646a5;
+}
+
+
+/* 안내문 */
+
+.notice {
+    margin-top: 18px;
+
+    color: #9ca3af;
+
+    font-size: 12px;
+    text-align: center;
+}
+
+
+/* 작은 화면 */
+
+@media (max-width: 600px) {
+
+    .container {
+        padding: 30px 16px;
+    }
+
+    .page-header h1 {
+        font-size: 25px;
+    }
+
+    .card {
+        padding: 22px;
+    }
+
+}

@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="ko">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>의존성 점검</title>
+
+    <link
+        rel="stylesheet"
+        href="/static/style.css"
+    >
+</head>
+
+<body>
+
+    <main class="container">
+
+        <header class="page-header">
+            <span class="badge">OSS CHECK</span>
+
+            <h1>
+                의존성 라이선스·취약점 점검
+            </h1>
+
+            <p>
+                requirements.txt 파일을 올리거나
+                의존성 목록을 직접 입력해 확인할 수 있습니다.
+            </p>
+        </header>
+
+
+        <section class="card">
+
+            <div class="step">
+
+                <div class="step-title">
+                    <span class="step-number">1</span>
+
+                    <div>
+                        <h2>의존성 입력</h2>
+                        <p>
+                            requirements.txt 파일을 선택하세요.
+                        </p>
+                    </div>
+                </div>
+
+                <label
+                    for="dependency_file"
+                    class="file-label"
+                >
+                    파일 선택
+                </label>
+
+                <input
+                    id="dependency_file"
+                    class="file-input"
+                    type="file"
+                    name="dependency_file"
+                    accept=".txt"
+                >
+
+            </div>
+
+
+            <div class="divider">
+                <span>또는</span>
+            </div>
+
+
+            <div class="step">
+
+                <label
+                    for="dependency_text"
+                    class="input-label"
+                >
+                    의존성 목록 직접 입력
+                </label>
+
+                <textarea
+                    id="dependency_text"
+                    name="dependency_text"
+                    rows="8"
+                    placeholder="예)&#10;requests==2.32.0&#10;fastapi==0.118.0"
+                ></textarea>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-title">
+                    <span class="step-number">2</span>
+
+                    <div>
+                        <h2>프로젝트 라이선스</h2>
+                        <p>
+                            현재 프로젝트에서 사용할 라이선스를 선택하세요.
+                        </p>
+                    </div>
+                </div>
+
+                <select name="project_license">
+
+                    <option value="MIT" selected>
+                        MIT
+                    </option>
+
+                    <option value="Apache-2.0">
+                        Apache-2.0
+                    </option>
+
+                    <option value="BSD-3-Clause">
+                        BSD-3-Clause
+                    </option>
+
+                    <option value="GPL-3.0-only">
+                        GPL-3.0
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <div class="step">
+
+                <div class="step-title">
+                    <span class="step-number">3</span>
+
+                    <div>
+                        <h2>분석 시작</h2>
+                        <p>
+                            입력한 의존성의 라이선스와 위험 요소를 확인합니다.
+                        </p>
+                    </div>
+                </div>
+
+                <button
+                    class="analyze-button"
+                    type="button"
+                >
+                    분석하기
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <p class="notice">
+            분석 결과는 참고용이며 법적 조언이 아닙니다.
+        </p>
+
+    </main>
+
+</body>
+
+</html>

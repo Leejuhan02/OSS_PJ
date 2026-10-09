@@ -12,6 +12,10 @@ class PackageTests(unittest.TestCase):
         self.assertEqual(Package("requests").depth, 0)
         self.assertEqual(Package("idna", "3.7", direct=False, depth=1).version, "3.7")
 
+    def test_lookup_failed_defaults_to_false(self):
+        self.assertFalse(Package("requests").lookup_failed)
+        self.assertTrue(Package("ghost", direct=False, depth=2, lookup_failed=True).lookup_failed)
+
     def test_direct_and_depth_must_agree(self):
         for kwargs in ({"direct": True, "depth": 1}, {"direct": False, "depth": 0}, {"direct": False, "depth": -1}):
             with self.subTest(kwargs=kwargs), self.assertRaises(ValueError):
@@ -95,7 +99,15 @@ class ReportTests(unittest.TestCase):
 
     def test_counts(self):
         report = Report("MIT", [self.row("a", "써도 됨"), self.row("b", "써도 됨", direct=False)])
-        self.assertEqual(report.counts(), {"total": 2, "direct": 1, "transitive": 1})
+        self.assertEqual(report.counts(), {"total": 2, "direct": 1, "transitive": 1, "failed": 0})
+
+    def test_lookup_failed_row_must_be_unknown(self):
+        failed = Package("ghost", lookup_failed=True)
+        row = Row(failed, LicenseInfo.unknown("ghost"), Judgement("ghost", "모름", "패키지 정보를 가져오지 못함"))
+        self.assertEqual(Report("MIT", [row]).counts()["failed"], 1)
+        with self.assertRaises(ValueError):   # 조회 실패인데 라이선스가 식별됐다면 모순
+            Row(failed, LicenseInfo.single("ghost", "MIT", confidence="확실", origin="license"),
+                Judgement("ghost", "써도 됨", "사유"))
 
     def test_row_names_must_match(self):
         with self.assertRaises(ValueError):

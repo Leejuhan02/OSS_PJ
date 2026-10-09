@@ -47,12 +47,15 @@ class Package:
     version 확정 버전. `이름==버전` 입력에서만 있음 — FR-IN-07
     direct  입력 파일에 직접 적힌 패키지인지 — FR-DEP-07
     depth   직접 = 0, 그 의존성 = 1 … — FR-DEP-07
+    lookup_failed  패키지 정보를 가져오지 못했으면 True — FR-DEP-08
+                   이 패키지는 라이선스를 식별하지 않고 「모름」으로 판정하되, 사유에 조회 실패를 적음
     """
 
     name: str
     version: str | None = None
     direct: bool = True
     depth: int = 0
+    lookup_failed: bool = False
 
     def __post_init__(self) -> None:
         if not self.name or self.name != self.name.strip():
@@ -161,6 +164,8 @@ class Row:
         names = {self.package.name, self.license.package, self.judgement.package}
         if len(names) != 1:
             raise ValueError(f"한 줄 안의 패키지 이름이 서로 다름: {sorted(names)}")
+        if self.package.lookup_failed and self.license.options is not None:
+            raise ValueError("조회 실패 패키지에 식별된 라이선스가 있을 수 없음 (FR-DEP-08)")
 
 
 @dataclass
@@ -176,6 +181,8 @@ class Report:
         return sorted(self.rows, key=lambda row: (RISK_ORDER[row.judgement.verdict], row.package.name))
 
     def counts(self) -> dict[str, int]:
-        """전체·직접·따라온 패키지 수 — FR-OUT-01"""
+        """전체·직접·따라온 패키지 수 — FR-OUT-01. failed = 조회 실패 수 — FR-DEP-08"""
         direct = sum(1 for row in self.rows if row.package.direct)
-        return {"total": len(self.rows), "direct": direct, "transitive": len(self.rows) - direct}
+        failed = sum(1 for row in self.rows if row.package.lookup_failed)
+        return {"total": len(self.rows), "direct": direct,
+                "transitive": len(self.rows) - direct, "failed": failed}

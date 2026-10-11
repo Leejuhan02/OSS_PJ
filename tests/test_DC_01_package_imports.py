@@ -23,6 +23,9 @@ MODULES = [
     "oss_check.judge.judge_logic",
     "oss_check.adapters.pypi_adapter",
     "oss_check.web.main",
+    "oss_check.app.service",
+    "oss_check.app.sample",
+    "oss_check.__main__",
 ]
 
 DOMAIN_DIR = Path(__file__).resolve().parents[1] / "src" / "oss_check" / "domain"

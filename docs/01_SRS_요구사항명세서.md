@@ -4,10 +4,10 @@
 
 | 항목 | 내용 |
 |---|---|
-| 판 | 1.1 |
+| 판 | 1.2 |
 | 준거 | ISO/IEC/IEEE 29148:2018 문서 구조 |
 | 과목 | 한밭대학교 「오픈소스 소프트웨어 프로그래밍」(COME210014) 2팀 |
-| 작성일 | 2026-10-01 (1.1 개정 2026-10-02) |
+| 작성일 | 2026-10-01 (1.1 개정 2026-10-02, 1.2 개정 2026-10-11) |
 | 상태 | 팀 검토 대기 |
 
 ### 관련 문서
@@ -489,7 +489,7 @@ DR-03~DR-08만 새로 만드는 데이터이고, 나머지는 받아 씀. 필수
 | `Apache Software License` (classifier) | `Apache-2.0`, 신뢰 「추정」 | FR-LIC-08 |
 | MIT 프로젝트 + `LGPL-2.1-or-later` | 「조건 있음」 | FR-JDG-05 |
 | MIT 프로젝트 + `Apache-2.0 OR GPL-2.0-or-later` | 「써도 됨」 | FR-JDG-03 |
-| MIT 프로젝트 + `MIT-0` | 「판단보류」 | FR-JDG-08 |
+| MIT 프로젝트 + `MIT-CMU` (pillow) | 「판단보류」 | FR-JDG-08 — 유효한 SPDX ID지만 등급표에 없는 경우 |
 | `jsonschema[format]` | `rfc3987` 포함, 「안 됨」 | FR-DEP-03 |
 
 ## 4.3 인수 시나리오
@@ -591,7 +591,7 @@ DR-03~DR-08만 새로 만드는 데이터이고, 나머지는 받아 씀. 필수
 ```python
 # 요구사항 개수 세기 — 저장소 scripts/count_reqs.py
 import re, collections
-s = open("docs/SRS.md", encoding="utf-8").read()
+s = open("docs/01_SRS_요구사항명세서.md", encoding="utf-8").read()
 c = collections.Counter()
 for rid, rest in re.findall(r"^\| ((?:IF|FR|QR|CR|DC|DR)-[A-Z0-9-]+) \|(.+)$", s, re.M):
     pr = next((x.strip() for x in rest.split("|") if x.strip() in "MSC" and x.strip()), None)
@@ -608,4 +608,5 @@ for k in sorted(c):
 | 0.1 | 2026-09-30 | 최초 초안 |
 | 0.2 | 2026-10-01 | 강의계획서 반영, 역할군·설계 추가 |
 | 1.0 | 2026-10-01 | 표준 구조로 재작성. 설계·수행계획 분리. 요구사항 ID·검증 방법 전면 정비 |
+| 1.2 | 2026-10-11 | §4.2 회귀 사례 「MIT-0 → 판단보류」를 `MIT-CMU`로 교체(등급표에 MIT-0가 1등급으로 들어가 결과가 바뀜). 부록 D 개수 세기 코드의 파일 경로를 실제 이름으로 수정. 요구사항 내용 변경 없음 |
 | 1.1 | 2026-10-02 | 완성 최우선으로 필수 범위 축소: 괄호 표현식·데이터 확장을 권장으로, 식별률 필수 기준 93→90%, 데이터 필수 규모 40·30·30. Docker를 필수로. 화면 방식 결정 |

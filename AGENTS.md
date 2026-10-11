@@ -32,7 +32,7 @@
 - 테스트에서 네트워크(PyPI, OSV)를 쓰지 않음. `oss_check.domain.ports`의 `PackageSource`·`VulnSource`를 구현한 가짜 객체를 씀
 - `src/oss_check/domain/` (models.py, ports.py)를 임의로 바꾸지 않음. 팀 전체 약속이라 PR로 전원 확인을 받아야 함
 - `domain/`에서 표준 라이브러리 외 패키지를 import 하지 않음
-- 데이터 파일을 `src/oss_check/data/` 밖에 두지 않음. 읽을 때는 `importlib.resources.files("oss_check").joinpath("data", 파일명)`을 씀. `"src/..."` 같은 문자열 경로나 `Path(__file__)` 상대 경로는 쓰지 않음
+- 데이터 파일을 `src/oss_check/data/` 밖에 두지 않음. 읽을 때는 `importlib.resources.files("oss_check") / "data" / 파일명`을 씀 (`joinpath`에 인수 여러 개 금지 — 3.11에서 실패). `"src/..."` 같은 문자열 경로나 `Path(__file__)` 상대 경로는 쓰지 않음
 - 자기 담당 모듈 밖의 코드나 테스트를 고치지 않음. 필요하면 사람에게 알림
 
 ## 모듈 간 약속 요약 (자세한 것은 설계지침 §4)
@@ -50,6 +50,8 @@ python -m venv .venv && source .venv/Scripts/activate   # Windows Git Bash (맥�
 pip install -e ".[dev]"
 python -m pytest -q
 ```
+
+- PR을 올리면 GitHub Actions가 파이썬 3.11·3.14 두 버전으로 같은 테스트를 자동 실행함. 둘 다 통과해야 함
 
 ## 작업·PR 규칙
 

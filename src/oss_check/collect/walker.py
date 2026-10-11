@@ -122,6 +122,14 @@ def walk(
             if info is None:
                 if warnings is not None:
                     warnings.append(f"패키지 '{norm_name}'의 정보를 가져오지 못했습니다 (조회 실패).")
+                # Create a Package marking lookup failure
+                seen[norm_name] = Package(
+                    name=norm_name,
+                    version=pinned_version,
+                    direct=is_direct,
+                    depth=depth,
+                    lookup_failed=True,
+                )
                 evaluated_extras[norm_name] = set(current_extras)
                 continue
 

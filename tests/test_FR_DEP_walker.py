@@ -175,6 +175,24 @@ class TestFRDEPWalker(unittest.TestCase):
         # 조회 실패 경고가 warnings에 남아 있어야 함
         self.assertTrue(any("not-found-pkg" in w and "조회 실패" in w for w in warnings))
 
+        # FR-DEP-08: 조회 실패 패키지는 lookup_failed=True 로 기록되어야 함
+        self.assertTrue(pkg_map["not-found-pkg"].lookup_failed)
+        self.assertFalse(pkg_map["valid-pkg"].lookup_failed)
+        self.assertFalse(pkg_map["root"].lookup_failed)
+
+        # Report.counts() 집계에 failed 건수가 반영되는지 검증
+        from oss_check.domain.models import Judgement, LicenseInfo, Report, Row
+        rows = [
+            Row(
+                p,
+                LicenseInfo.unknown(p.name) if p.lookup_failed else LicenseInfo.single(p.name, "MIT", confidence="확실", origin="license"),
+                Judgement(p.name, "모름" if p.lookup_failed else "써도 됨", "사유", None if p.lookup_failed else "MIT"),
+            )
+            for p in packages
+        ]
+        report = Report("MIT", rows)
+        self.assertEqual(report.counts()["failed"], 1)
+
 
 if __name__ == "__main__":
     unittest.main()

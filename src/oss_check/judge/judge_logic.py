@@ -1,23 +1,30 @@
 # [강의] L05 FCF 디자인 패턴 / L06 사용자 정의 Callable (__call__) / L07 키워드 전용 인수
 from collections.abc import Callable
+import importlib.resources
 import json
 from pathlib import Path
 from typing import Optional
 
+# domain/models.py 에서 데이터 모델 import (R0 표준)
 from oss_check.domain.models import Judgement, LicenseInfo
 
-# JSON 등급표 파일 읽기 (DR-04)
-DATA_PATH = Path(__file__).parent.parent / "data" / "tiers.json"
+# JSON 등급표 파일 읽기 (DR-04) - 설계지침 v1.2 §4.4 규칙 준수 (importlib.resources 사용)
 def load_tiers() -> dict[str, int]:
-    if DATA_PATH.exists():
-        with open(DATA_PATH, "r", encoding="utf-8") as f:
+    try:
+        data_file = importlib.resources.files("oss_check").joinpath("data", "tiers.json")
+        if not data_file.is_file():
+            # judge/ 폴더 내 파이프라인 폴백 검사
+            data_file = importlib.resources.files("oss_check").joinpath("judge", "tiers.json")
+        
+        with data_file.open("r", encoding="utf-8") as f:
             data = json.load(f)
-            # JSON 값이 { "tier": 1, ... } 객체 구조인 경우와 숫자인 경우 모두 대응
             return {
                 k: (v["tier"] if isinstance(v, dict) else v)
                 for k, v in data.items()
             }
-    return {}
+    except Exception as e:
+        # §4.3: 파일이 없거나 읽기 실패 시 빈 표로 넘어가지 않고 예외 발생
+        raise FileNotFoundError(f"등급표(tiers.json)를 읽을 수 없습니다: {e}")
 
 TIERS: dict[str, int] = load_tiers()
 Rule = Callable[[LicenseInfo, int], Optional[Judgement]]
@@ -43,55 +50,36 @@ def rule_unknown(lic: LicenseInfo, project_tier: int) -> Optional[Judgement]:
     return None
 
 
-class TierRule:
-    """FR-JDG-01~06, 08, 12: 등급표 기반 판정 규칙 (Callable 객체)"""
-
+class TierRule: #10.09.20:22 규칙 순서를 바꿈
     def __init__(self, tiers: dict[str, int]):
         self._tiers = tiers
 
-    def __call__(self, lic: LicenseInfo, project_tier: int) -> Optional[Judgement]:
+    def __call__(self, lic: LicenseInfo, project_tier: int) -> Judgement | None:
         assert lic.options is not None
-
-        # OR/AND 표현식 전개 처리 (FR-JDG-03, FR-JDG-04)
-        best: Optional[tuple[int, str]] = None
-        for combo in lic.options:  # OR: 가장 약한(낮은 등급) 선택지를 최선으로 채택
+        best: tuple[int, str] | None = None
+        
+        for combo in lic.options:                         # OR = 가장 약한 선택지 (FR-JDG-03)
             tiers = [self._tiers.get(x) for x in combo]
-            if None in tiers:  # 조합 내 등급표에 없는 라이선스가 섞여 있으면 스킵
+            if None in tiers:
                 continue
-            # AND: 조합 내 가장 강한(높은 등급) 라이선스를 기준으로 적용
-            top = max(zip(tiers, sorted(combo)))
+            top = max(zip(tiers, sorted(combo)))          # AND = 가장 센 것 (FR-JDG-04)
+            
             if best is None or top[0] < best[0]:
                 best = top
-
-        # 등급표에 없는 라이선스인 경우 (FR-JDG-08)
+                
         if best is None:
-            return Judgement(
-                lic.package, "판단보류", "등급표에 등록되지 않은 라이선스입니다.", None
-            )
-
+            return Judgement(lic.package, "판단보류", "등급표에 없는 라이선스임", None)  # FR-JDG-08
+        
         tier, spdx = best
-        reason_suffix = " (추정된 라이선스 기반)" if lic.confidence == "추정" else ""  # FR-JDG-12
+        
+        if tier == 2 and project_tier <= 1:              # FR-JDG-05 가 FR-JDG-06 보다 먼저
+            return Judgement(lic.package, "조건 있음", f"{spdx}: 고쳐 썼다면 고친 부분만 공개", spdx)
+        
+        if tier > project_tier:                          # FR-JDG-06
+            return Judgement(lic.package, "안 됨", f"{spdx} 조건이 내 프로젝트보다 셈", spdx)
+        
+        return Judgement(lic.package, "써도 됨", f"{spdx}: 사용 가능", spdx)
 
-        # FR-JDG-05: 약한 공개조건(LGPL 등 Tier 2) & 내 프로젝트가 허용형(Tier 1 이하)
-        if tier == 2 and project_tier <= 1:
-            return Judgement(
-                lic.package,
-                "조건 있음",
-                f"{spdx}: 소스 코드를 직접 수정했다면 고친 부분만 공개해야 합니다.{reason_suffix}",
-                spdx,
-            )
-
-        # FR-JDG-06: 의존성 라이선스 등급이 내 프로젝트 등급보다 높은 경우
-        if tier > project_tier:
-            return Judgement(
-                lic.package,
-                "안 됨",
-                f"{spdx}: 의존성 라이선스 조건이 내 프로젝트 라이선스보다 엄격합니다.{reason_suffix}",
-                spdx,
-            )
-
-        # 기본 허용
-        return Judgement(lic.package, "써도 됨", f"{spdx}{reason_suffix}", spdx)
 
 
 # 전략 목록 구성 (우선순위 순서 엄격 적용: FR-JDG-09 -> 07 -> 08 -> 05 -> 06)
@@ -105,4 +93,4 @@ def judge(lic: LicenseInfo, *, project: str) -> Judgement:
     for rule in RULES:
         if (result := rule(lic, project_tier)) is not None:
             return result
-    return Judgement(lic.package, "써도 됨", "", None)
+    return Judgement(lic.package, "써도 됨", "사용 가능", None)

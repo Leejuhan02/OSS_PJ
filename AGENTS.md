@@ -16,12 +16,13 @@
 1. **RED** — SRS에서 요구사항 ID를 하나 고르고 테스트를 먼저 씀
    - 파일: `tests/test_<요구사항ID>_<내용>.py` (예: `tests/test_FR_DEP_08_lookup.py`), docstring 첫 줄에 요구사항 ID
    - `python -m pytest`를 실행해 **새 테스트만, 기능이 아직 없어서** 실패하는지 확인
-   - 커밋: `test(red): <요구사항ID> <내용>`
 2. **GREEN** — 그 테스트를 통과시키는 최소한의 코드만 씀
    - `python -m pytest` 전체 통과 확인 (`failed`·`error` 0)
-   - 커밋: `feat(green): <요구사항ID> <내용>`
 3. **REFACTOR** (필요할 때만) — 동작을 바꾸지 않고 정리. 전체 테스트가 계속 통과해야 함
-   - 커밋: `refactor: <내용>`
+4. **푸시** — RED·GREEN은 로컬에서 순서대로 실행하고, GREEN 확인 후 한 번에 푸시함. 커밋을 단계별로 나누지 않아도 됨
+   - RED 실패 결과 한 줄과 GREEN 통과 결과 한 줄을 PR 본문에 남김 (이것이 순서의 증거임)
+   - 커밋 메시지에 요구사항 ID를 넣음. 예: `feat: FR-DEP-08 조회 실패 패키지 표시`
+   - RED 상태(테스트 실패)로 푸시하지 않음
 
 버그 수정도 같음: 버그를 재현하는 테스트(RED) → 수정(GREEN).
 예외: 문서, CSS, HTML 모양만 바꾸는 변경은 RED 단계 없이 진행함.

@@ -283,6 +283,34 @@ select:focus {
 }
 
 
+.result-item {
+    padding: 16px 0;
+    border-top: 1px solid #e5e7eb;
+    overflow-wrap: anywhere;
+}
+
+.result-item p {
+    line-height: 1.6;
+}
+
+/* 허용 항목은 기본으로 접고 필요할 때 펼침 */
+.allowed-results {
+    margin-top: 16px;
+    border-top: 1px solid #e5e7eb;
+    padding-top: 16px;
+}
+
+.allowed-results summary {
+    cursor: pointer;
+    font-weight: 600;
+    padding: 8px 0;
+}
+
+.allowed-results summary:focus-visible {
+    outline: 2px solid #3157c8;
+    outline-offset: 4px;
+}
+
 /* 작은 화면 */
 
 @media (max-width: 600px) {

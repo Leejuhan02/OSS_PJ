@@ -21,6 +21,69 @@
 
     <main class="container">
 
+        {% if report is defined %}
+        <header class="page-header">
+            <span class="badge">예시 화면</span>
+            <h1>의존성 점검 예시 결과</h1>
+            <p>팀장이 제공한 가상 패키지 데이터입니다. 실제 입력을 분석한 결과가 아닙니다.</p>
+        </header>
+
+        <section class="card">
+            <h2>전체 {{ counts.total }}개</h2>
+            <p>직접 {{ counts.direct }}개 · 따라온 {{ counts.transitive }}개 · 조회 실패 {{ counts.failed }}개</p>
+            <p>프로젝트 라이선스: {{ report.project_license }}</p>
+
+            {% macro package_result(row) %}
+            <article class="result-item">
+                <h3>{{ row.judgement.verdict }} · {{ row.package.name }}</h3>
+                <p>{{ '직접 입력' if row.package.direct else '따라온 패키지' }} · 버전: {{ row.package.version or '미확정' }}</p>
+                <p>라이선스:
+                    {% if row.license.options is none %}
+                    미상
+                    {% else %}
+                    {% for choice in row.license.options %}
+                    {{ choice | sort | join(' AND ') }}{% if not loop.last %} OR {% endif %}
+                    {% endfor %}
+                    {% endif %}
+                    · 신뢰 수준: {{ row.license.confidence }}
+                </p>
+                <p>{{ row.judgement.reason }}</p>
+            </article>
+            {% endmacro %}
+
+            {% for row in rows if row.judgement.verdict != '써도 됨' %}
+            {{ package_result(row) }}
+            {% endfor %}
+
+            {% set allowed_rows = rows | selectattr('judgement.verdict', 'equalto', '써도 됨') | list %}
+            {% if allowed_rows %}
+            <details class="allowed-results">
+                <summary>써도 됨 {{ allowed_rows | length }}개 · 상세 보기</summary>
+                {% for row in allowed_rows %}
+                {{ package_result(row) }}
+                {% endfor %}
+            </details>
+            {% endif %}
+
+            {% if report.warnings %}
+            <section aria-labelledby="warnings-heading">
+                <h2 id="warnings-heading">예시 데이터의 경고</h2>
+                <ul>
+                    {% for warning in report.warnings %}
+                    <li>{{ warning }}</li>
+                    {% endfor %}
+                </ul>
+            </section>
+            {% endif %}
+        </section>
+
+        <p><a href="/">입력 화면으로 돌아가기</a></p>
+        <footer class="notice">
+            <p>이 결과는 법적 조언이 아닙니다.</p>
+            <p>실제 분석에서 사용하는 데이터 출처: SPDX · PyPI · OSV</p>
+            <p>이 예시 화면은 외부 서비스를 조회하지 않습니다.</p>
+        </footer>
+        {% else %}
         <header class="page-header">
             <span class="badge">OSS CHECK</span>
 
@@ -35,7 +98,22 @@
         </header>
 
 
-        <section class="card">
+        {% if input_error %}
+        <p role="alert">{{ input_error }}</p>
+        <p>파일을 사용하려면 파일은 다시 선택해 주세요.</p>
+        {% elif input_received %}
+        <div role="status">
+            <p>입력을 받았습니다. 실제 분석은 아직 연결되지 않았습니다.</p>
+            <p>프로젝트 라이선스: {{ received_license }}</p>
+        </div>
+        {% endif %}
+
+        <form
+            class="card"
+            method="post"
+            action="/analyze"
+            enctype="multipart/form-data"
+        >
 
             <div class="step">
 
@@ -87,7 +165,7 @@
                     name="dependency_text"
                     rows="8"
                     placeholder="예)&#10;requests==2.32.0&#10;fastapi==0.118.0"
-                ></textarea>
+                >{{ dependency_text | default('') }}</textarea>
 
             </div>
 
@@ -107,19 +185,20 @@
 
                 <select name="project_license">
 
-                    <option value="MIT" selected>
+                    {% set selected_license = received_license | default('MIT') %}
+                    <option value="MIT" {% if selected_license == 'MIT' %}selected{% endif %}>
                         MIT
                     </option>
 
-                    <option value="Apache-2.0">
+                    <option value="Apache-2.0" {% if selected_license == 'Apache-2.0' %}selected{% endif %}>
                         Apache-2.0
                     </option>
 
-                    <option value="BSD-3-Clause">
+                    <option value="BSD-3-Clause" {% if selected_license == 'BSD-3-Clause' %}selected{% endif %}>
                         BSD-3-Clause
                     </option>
 
-                    <option value="GPL-3.0-only">
+                    <option value="GPL-3.0-only" {% if selected_license == 'GPL-3.0-only' %}selected{% endif %}>
                         GPL-3.0
                     </option>
 
@@ -143,19 +222,23 @@
 
                 <button
                     class="analyze-button"
-                    type="button"
+                    type="submit"
                 >
                     분석하기
                 </button>
 
             </div>
 
-        </section>
+        </form>
 
+
+        <p><a href="/preview">예시 결과 보기</a> — 실제 분석 없이 화면 구성을 확인합니다.</p>
 
         <p class="notice">
             분석 결과는 참고용이며 법적 조언이 아닙니다.
         </p>
+
+        {% endif %}
 
     </main>
 

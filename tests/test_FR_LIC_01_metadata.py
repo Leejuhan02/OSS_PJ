@@ -62,12 +62,12 @@ class MetadataResolutionTests(unittest.TestCase):
                 self.assertEqual(result.raw, raw)
 
     def test_structured_expression_does_not_discard_subsequent_lines(self):
-        self.assertEqual(self.resolver.resolve({"license_expression": "MIT\nOR GPL-3.0-only"}).confidence,
-                         "미상")
+        result = self.resolver.resolve({"license_expression": "MIT\nOR GPL-3.0-only"})
+        self.assertEqual(result.confidence, "확실")
+        self.assertEqual(result.raw, "MIT\nOR GPL-3.0-only")
 
     def test_unsupported_expression_is_not_partially_accepted(self):
-        for raw in ("MIT OR GPL-3.0-only", "MIT AND UNKNOWN", "(MIT)",
-                    "Apache-2.0 WITH LLVM-exception", "MIT, GPL-3.0-only"):
+        for raw in ("MIT AND UNKNOWN", "(MIT)", "MIT, GPL-3.0-only"):
             with self.subTest(raw=raw):
                 result = self.resolver.resolve({"license_expression": raw})
                 self.assertIsNone(result.identifier)

@@ -1,6 +1,6 @@
-"""PyPI info 메타데이터에서 단일 라이선스를 식별한다.
+"""PyPI info 메타데이터에서 라이선스와 괄호 없는 표현식을 식별한다.
 
-복합 표현식과 여러 라이선스 classifier의 결합은 후속 FR-LIC-05~07 작업이다.
+여러 라이선스 classifier의 결합과 괄호 표현식은 지원하지 않는다.
 지원하지 않는 값을 부분적으로 읽어 허용형 라이선스로 바꾸지 않는다.
 """
 
@@ -44,15 +44,29 @@ class LicenseResolution:
     source: Source | None
     raw: str | tuple[str, ...] | None
     evidence: tuple[LicenseEvidence, ...]
+    options: tuple[frozenset[str], ...] | None = None
+
+    def __post_init__(self) -> None:
+        # 내부 단일 ID 호환 결과도 공개 모델과 같은 선택지 구조를 갖는다.
+        if self.identifier is not None and self.options is None:
+            object.__setattr__(self, "options", (frozenset({self.identifier}),))
 
 
 class LicenseResolver:
     """로컬 SPDX 목록과 별칭 사전만 사용한다. data_dir로 데이터 교체 가능."""
 
     def __init__(self, data_dir: Path | None = None) -> None:
-        directory = data_dir if data_dir is not None else files("oss_check").joinpath("data")
-        catalog = json.loads(directory.joinpath("spdx_licenses.json").read_text(encoding="utf-8"))
-        aliases = json.loads(directory.joinpath("license_aliases.json").read_text(encoding="utf-8"))
+        bundled = files("oss_check") / "data"
+        directory = data_dir if data_dir is not None else bundled
+        catalog = json.loads((directory / "spdx_licenses.json").read_text(encoding="utf-8"))
+        aliases = json.loads((directory / "license_aliases.json").read_text(encoding="utf-8"))
+        exception_path = directory / "spdx_exceptions.json"
+        # 기존 별칭 교체용 데이터 디렉터리는 라이선스·별칭 두 파일만 있어도 된다.
+        if data_dir is not None and not exception_path.is_file():
+            exception_path = bundled / "spdx_exceptions.json"
+        exceptions = json.loads(exception_path.read_text(encoding="utf-8"))
+        self._exceptions = {item["licenseExceptionId"].casefold()
+                            for item in exceptions["exceptions"]}
         self._identifiers = {
             item["licenseId"].casefold(): item["licenseId"] for item in catalog["licenses"]
         }
@@ -91,6 +105,38 @@ class LicenseResolver:
             return "LicenseRef-" + reference.group(1)
         return self._aliases.get(normalized) or self._names.get(normalized)
 
+    def _expression(self, value: str, *, first_line: bool) -> tuple[frozenset[str], ...] | None:
+        """FR-LIC-05·06: WITH → AND → OR 우선순위로 선택지를 구성한다."""
+        text = value.strip()
+        if first_line:
+            text = text.splitlines()[0] if text else ""
+        # 공식 이름의 'or later' 등은 전체 이름이 일치하면 단일 ID로 보존한다.
+        identifier = self._convert(text, first_line=False)
+        if identifier is not None:
+            return (frozenset({identifier}),)
+        operator = r"(?<!\S)(?:AND|OR|WITH)(?!\S)"
+        if not re.search(operator, text, flags=re.IGNORECASE):
+            return None
+        # 괄호를 제거해 부분 성공시키지 않는다. 괄호 해석은 FR-LIC-12 범위다.
+        if "(" in text or ")" in text:
+            return None
+        choices: list[frozenset[str]] = []
+        for alternative in re.split(r"(?<!\S)OR(?!\S)", text, flags=re.IGNORECASE):
+            identifiers: set[str] = set()
+            for term in re.split(r"(?<!\S)AND(?!\S)", alternative, flags=re.IGNORECASE):
+                parts = re.split(r"(?<!\S)WITH(?!\S)", term, flags=re.IGNORECASE)
+                if len(parts) > 2:
+                    return None
+                identifier = self._convert(parts[0], first_line=False)
+                if identifier is None:
+                    return None
+                if len(parts) == 2 and parts[1].strip().casefold() not in self._exceptions:
+                    return None
+                identifiers.add(identifier)
+            choices.append(frozenset(identifiers))
+        # [강의] dict: 삽입 순서를 유지하면서 같은 동시 적용 집합을 중복 제거한다.
+        return tuple(dict.fromkeys(choices))
+
     def resolve(self, metadata: Mapping[str, object]) -> LicenseResolution:
         """PyPI 응답의 info 객체를 받는다. 첫 변환 성공 단계에서 반환한다."""
         evidence: list[LicenseEvidence] = []
@@ -102,9 +148,10 @@ class LicenseResolver:
             evidence.append(LicenseEvidence(source, raw))
             if source == "license" and len(raw) > 200:
                 continue
-            identifier = self._convert(raw, first_line=source == "license")
-            if identifier is not None:
-                return LicenseResolution(identifier, "확실", source, raw, tuple(evidence))
+            options = self._expression(raw, first_line=source == "license")
+            if options is not None:
+                identifier = next(iter(options[0])) if len(options) == 1 and len(options[0]) == 1 else None
+                return LicenseResolution(identifier, "확실", source, raw, tuple(evidence), options)
 
         raw_classifiers = metadata.get("classifiers")
         if isinstance(raw_classifiers, (list, tuple)):

@@ -1,17 +1,18 @@
 # src/oss_check/resolve
 
-PyPI `info` 메타데이터에서 단일 라이선스를 식별함 (R2).
+PyPI `info` 메타데이터에서 라이선스와 괄호 없는 복합식을 식별함 (R2).
 
 ```python
-from oss_check.resolve import resolve_license
+from oss_check.resolve import identify
 
-result = resolve_license({
+result = identify("example-pkg", {
     "license_expression": None,
     "license": "UNKNOWN",
     "classifiers": ["License :: OSI Approved :: Apache Software License"],
 })
-assert result.identifier == "Apache-2.0"
+assert result.options == (frozenset({"Apache-2.0"}),)
 assert result.confidence == "추정"
+assert result.origin == "classifiers"
 ```
 
 ## 이번 작업 범위
@@ -20,37 +21,57 @@ assert result.confidence == "추정"
 - FR-LIC-02·03: legacy license는 원문 200자 초과 시 건너뜀. 첫 줄, URL, 공백, 대소문자, license/licence 접미어 정규화.
 - FR-LIC-08~10: classifier는 추정, 변환 실패는 미상. 성공 단계·원문과 시도한 문자열 근거를 보존.
 - SPDX 3.29.0 목록의 단일 ID와 공식 이름, 초기 별칭 지원. `LicenseRef-*`는 R3 판정을 위해 유지.
+- DR-02: SPDX 3.29.0 예외 86종 동봉.
+- FR-LIC-05·06: 괄호 없는 AND/OR/WITH, OR 선택지와 AND 동시 적용을 지원.
+  WITH는 공식 예외 이름을 확인하고 기본 라이선스 ID를 선택지에 남김. 예외는 원문에 보존.
+  알 수 없는 예외·잘못된 식은 해당 단계 실패 후 다음 필드로 이동하는 보수적 정책을 사용함.
 - 로컬 JSON만 사용. 네트워크 요청·업로드 저장·로그 출력 없음.
 
 이 결과는 라이선스 **식별**이며 사용 가능 여부 판정은 R3 `judge/`에서 수행함.
-공통 모델은 아직 없으므로 R2 내부 데이터클래스를 사용하며 R0 모델 확정 후 연결할 수 있음.
+공개 계약은 `identify(name, info) → LicenseInfo`임 (설계지침 §4.0·4.3).
+`LicenseResolution`과 `resolve_license()`는 R2 내부 구현이며 다른 모듈에는 전달하지 않음.
+기존 R2 단위 테스트용 `LicenseResolver`·`resolve_license` import는 호환 목적으로 유지함.
 
 ## 후속 작업
 
-- FR-LIC-04 / DR-03: 별칭 80종 이상과 표본 변환율 검증. 현재 초기 사전은 19개 표기이며 정규화 후 중복이 있음.
-- FR-LIC-05~07: AND/OR/WITH·괄호 파싱과 선택지 전개. 현재 복합 표현식은 부분 해석하지 않고 다음 필드로 넘어가며, 전부 실패하면 미상.
+- FR-LIC-04 / DR-03: 별칭 40종 이상과 표본 변환율 검증. 80종 이상은 DR-06 권장 범위. 현재 초기 사전은 19개 표기이며 정규화 후 중복이 있음.
+- FR-LIC-07: 피연산자 별칭 전반의 검증은 후속 범위. 기존 별칭 변환은 재사용함.
+- FR-LIC-12: 괄호·중첩 표현식 파서 (권장). 현재 괄호식은 미지원.
+- IF-SW-13 기동 시 초기화 및 함수 전략 목록 구조는 후속 범위.
 - 복수의 서로 다른 라이선스 classifier 또는 미해석 license classifier가 함께 있으면 미상. 결합 관계를 추측하지 않음.
 - FR-LIC-11: PEP 658 재조회 (권장 범위, R4와 연동).
 
-## 결과 필드
+## 공개 결과 필드
 
 | 필드 | 의미 |
 |---|---|
-| `identifier` | 식별한 단일 SPDX ID 또는 LicenseRef, 실패 시 None |
+| `package` | 입력으로 받은 패키지 이름 그대로 |
+| `options` | OR는 여러 frozenset, AND는 한 frozenset 안의 ID들. 단일은 `(frozenset({ID}),)`, 실패 시 None |
 | `confidence` | 확실 / 추정 / 미상 |
-| `source`, `raw` | 성공한 단계와 변환 전 원문, 실패 시 None |
-| `evidence` | 확인한 필드의 단계와 원문 목록. 실패·길이 초과의 근거도 유지 |
+| `origin` | license_expression / license / classifiers, 미상은 none |
+| `raw` | 항상 문자열. 성공한 필드의 원문 전체, classifier는 줄바꿈 연결 |
+
+미상일 때는 확인한 첫 필드의 원문을 보존함 (expression → license → classifiers 순).
+원문이 없으면 빈 문자열. 시도한 모든 필드의 근거는 내부 `LicenseResolution.evidence`에 유지함.
 
 SPDX 데이터와 사전은 프로세스 첫 사용 시 읽어 재사용함. JSON 수정 후 재시작하거나
 `LicenseResolver(data_dir=...)`로 새 인스턴스를 만들면 반영됨.
 
 ## 오프라인 테스트
 
-프로젝트 루트에서 의존성 설치 없이 실행할 수 있음 (Windows PowerShell):
+팀 테스트 표준은 Python 3.11 가상환경임. 프로젝트 루트의 `.venv`가 3.11인지
+먼저 확인하고 개발 의존성을 설치한 뒤 실행함 (Windows PowerShell):
 
 ```powershell
-$env:PYTHONPATH = 'src'
-python -m unittest discover -s tests -p 'test_*.py' -v
+.\.venv\Scripts\python.exe --version
+.\.venv\Scripts\python.exe -m pip install -e ".[dev]"
+.\.venv\Scripts\python.exe -m pytest -q
 ```
 
-개발 의존성이 설치되어 있으면 `python -m pytest`로도 실행 가능.
+`test_FR_LIC_01_identify.py`는 외부 조회만 가짜 `PackageSource`로 바꾸고,
+실제 `analyze()` → `identify()` → `judge()` 연결과 공통 모델 반환을 검증함.
+
+`test_FR_LIC_05_expressions.py`는 정상·잘못된 식·폴백·원문 보존,
+`test_FR_LIC_06_options.py`는 혼합식 우선순위·선택지 구조·중복 제거를 검증함.
+내부 `LicenseResolution.identifier`는 선택지가 단일 ID일 때만 채워지므로
+복합식의 성공 여부는 `options is not None`으로 확인해야 함.

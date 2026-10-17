@@ -2,7 +2,6 @@
 from collections.abc import Callable
 import importlib.resources
 import json
-from pathlib import Path
 from typing import Optional
 
 # domain/models.py 에서 데이터 모델 import (R0 표준)
@@ -11,10 +10,8 @@ from oss_check.domain.models import Judgement, LicenseInfo
 # JSON 등급표 파일 읽기 (DR-04) - 설계지침 v1.2 §4.4 규칙 준수 (importlib.resources 사용)
 def load_tiers() -> dict[str, int]:
     try:
-        data_file = importlib.resources.files("oss_check").joinpath("data", "tiers.json")
-        if not data_file.is_file():
-            # judge/ 폴더 내 파이프라인 폴백 검사
-            data_file = importlib.resources.files("oss_check").joinpath("judge", "tiers.json")
+        # AGENTS.md 및 설계지침 §4.4: Python 3.11 호환을 위해 / 연산자 사용 (joinpath 인수 다중 전달 금지)
+        data_file = importlib.resources.files("oss_check") / "judge" / "tiers.json"
         
         with data_file.open("r", encoding="utf-8") as f:
             data = json.load(f)
@@ -32,9 +29,18 @@ Rule = Callable[[LicenseInfo, int], Optional[Judgement]]
 
 def rule_proprietary(lic: LicenseInfo, project_tier: int) -> Optional[Judgement]:
     """FR-JDG-09: 독점 라이선스(LicenseRef-*, Proprietary)는 '안 됨'으로 판정"""
-    raw_lower = lic.raw.lower()
-    if "licenseref-" in raw_lower or "proprietary" in raw_lower:
-        return Judgement(lic.package, "안 됨", "독점 또는 비오픈소스 라이선스입니다.", None)
+    # 설계지침 §4.3 규칙: 독점 판정은 원문(raw)이 아니라 식별자(LicenseRef-*)로 수행
+    # 등급표 양식이 SPDX ID 키로 작성되어 식별자 기준 판정 유지
+    if lic.options:
+        for combo in lic.options:
+            for spdx_id in combo:
+                if spdx_id.lower().startswith("licenseref-"):
+                    return Judgement(
+                        lic.package,
+                        "안 됨",
+                        f"독점 또는 비오픈소스 라이선스({spdx_id})입니다.",
+                        spdx_id,
+                    )
     return None
 
 

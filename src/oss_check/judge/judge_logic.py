@@ -65,10 +65,15 @@ class TierRule: #10.09.20:22 규칙 순서를 바꿈
         best: tuple[int, str] | None = None
         
         for combo in lic.options:                         # OR = 가장 약한 선택지 (FR-JDG-03)
-            tiers = [self._tiers.get(x) for x in combo]
-            if None in tiers:
+            # combo 내 각 라이선스의 (tier, spdx) 튜플을 올바르게 짝짓기
+            item_tiers = [(self._tiers.get(x), x) for x in combo]
+
+            # 등급표에 없는 라이선스가 하나라도 포함되어 있으면 넘어감
+            if any(t[0] is None for t in item_tiers):
                 continue
-            top = max(zip(tiers, sorted(combo)))          # AND = 가장 센 것 (FR-JDG-04)
+
+            # AND 조건: 제약이 가장 센(tier 숫자가 가장 큰) 라이선스를 선택 (FR-JDG-04)
+            top = max(item_tiers, key=lambda item: item[0])          # AND = 가장 센 것 (FR-JDG-04)
             
             if best is None or top[0] < best[0]:
                 best = top

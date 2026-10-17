@@ -27,10 +27,13 @@ OSS_PJ/
 │   ├── judge/                판정 규칙 (R3)
 │   ├── vuln/                 취약점 분류 (R4)
 │   ├── adapters/             PyPI·OSV 조회, 캐시 (R4)
-│   ├── app/                  호출 순서 조정 (R0)
+│   ├── app/                  호출 순서 조정, 화면 개발용 예시 결과 (R0)
+│   ├── __main__.py           명령줄 실행 python -m oss_check (R0)
 │   └── web/                  FastAPI 화면 (R5)
-│       ├── routers/
-│       └── templates/
+│       ├── forms.py          입력 크기 제한 (1MB)
+│       ├── routers/          GET /, POST /analyze, GET /preview
+│       ├── templates/
+│       └── static/
 └── tests/
     └── fixtures/             실제 API 응답 사본
 ```
@@ -67,9 +70,16 @@ pip install -e ".[dev]"
 # 테스트
 python -m pytest -q
 
-# 웹 화면 (입력 화면까지 동작. 분석 기능은 연결 작업 중)
+# 웹 화면 (입력 접수와 예시 결과까지 동작)
 python -m uvicorn oss_check.web.main:app --reload   # Windows는 run.bat도 가능
+#   http://127.0.0.1:8000/          입력 화면
+#   http://127.0.0.1:8000/preview   예시 결과 화면 (가상 데이터)
+
+# 명령줄 (SRS IF-UI-04)
+python -m oss_check requirements.txt                 # 프로젝트 라이선스 기본값 MIT
+python -m oss_check requirements.txt --project Apache-2.0
 ```
 
 - 파이썬 3.11 이상 필요 (SRS DC-01)
-- 명령줄 실행 `python -m oss_check 파일`은 아직 없음 (SRS IF-UI-04, 작업 예정)
+- 실제 분석(웹 `POST /analyze`, 명령줄)은 R2 `resolve.identify`와 R4 `PyPIPackageSource`가 들어온 뒤 동작함. 그전에 명령줄을 실행하면 무엇이 없는지 안내하고 종료 코드 1로 끝남 (설계지침 §4.0)
+- 웹 화면은 저장소 최상위 폴더에서 실행해야 함. 템플릿 경로 수정(설계지침 §4.4) 전까지 다른 폴더에서 실행하면 오류가 남

@@ -11,7 +11,7 @@ from oss_check.domain.models import Judgement, LicenseInfo
 def load_tiers() -> dict[str, int]:
     try:
         # AGENTS.md 및 설계지침 §4.4: Python 3.11 호환을 위해 / 연산자 사용 (joinpath 인수 다중 전달 금지)
-        data_file = importlib.resources.files("oss_check") / "judge" / "tiers.json"
+        data_file = importlib.resources.files("oss_check") / "data" / "tiers.json"
         
         with data_file.open("r", encoding="utf-8") as f:
             data = json.load(f)

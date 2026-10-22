@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -11,9 +13,9 @@ from oss_check.web.forms import InputTooLarge, MAX_INPUT_BYTES, read_form
 
 router = APIRouter()
 
-templates = Jinja2Templates(
-    directory="src/oss_check/web/templates"
-)
+# 실행 폴더가 달라도 web 안의 템플릿을 찾도록 파일 위치를 기준으로 함.
+WEB_DIR = Path(__file__).resolve().parent.parent
+templates = Jinja2Templates(directory=str(WEB_DIR / "templates"))
 
 
 @router.get("/", response_class=HTMLResponse)

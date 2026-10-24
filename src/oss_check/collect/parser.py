@@ -115,14 +115,14 @@ def parse_requirements(content: str | bytes) -> tuple[list[ParsedRequirement], l
         # 3. 지원하지 않는 옵션/URL 검사 (FR-IN-05)
         unsupported_reason = _is_unsupported_line(cleaned)
         if unsupported_reason:
-            warnings.append(f"Line {lineno}: '{cleaned}' - {unsupported_reason}")
+            warnings.append(f"{lineno}번째 줄: '{cleaned}' - {unsupported_reason}")
             continue
 
         # 4. PEP 508 파싱 (FR-IN-04)
         try:
             req = Requirement(cleaned)
         except InvalidRequirement as e:
-            warnings.append(f"Line {lineno}: '{cleaned}' - PEP 508 파싱 실패: {e}")
+            warnings.append(f"{lineno}번째 줄: '{cleaned}' - PEP 508 파싱 실패: {e}")
             continue
 
         # 5. 확정 버전 추출 (FR-IN-07)

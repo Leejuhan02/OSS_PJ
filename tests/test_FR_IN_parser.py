@@ -82,11 +82,11 @@ class TestFRINParser(unittest.TestCase):
 
         # 경고에 건너뛴 줄 번호와 사유가 포함되어 있는지 확인
         self.assertEqual(len(warnings), 5)
-        self.assertTrue(any("Line 3" in w and "-r" in w for w in warnings))
-        self.assertTrue(any("Line 4" in w and "-e" in w for w in warnings))
-        self.assertTrue(any("Line 5" in w and "--extra-index-url" in w for w in warnings))
-        self.assertTrue(any("Line 6" in w and "URL" in w for w in warnings))
-        self.assertTrue(any("Line 7" in w and "URL" in w for w in warnings))
+        self.assertTrue(any("3번째 줄" in w and "-r" in w for w in warnings))
+        self.assertTrue(any("4번째 줄" in w and "-e" in w for w in warnings))
+        self.assertTrue(any("5번째 줄" in w and "--extra-index-url" in w for w in warnings))
+        self.assertTrue(any("6번째 줄" in w and "URL" in w for w in warnings))
+        self.assertTrue(any("7번째 줄" in w and "URL" in w for w in warnings))
 
     def test_FR_IN_06_default_project_license(self):
         """FR-IN-06: 프로젝트 라이선스를 지정하지 않으면 기본값 MIT를 반환해야 함."""

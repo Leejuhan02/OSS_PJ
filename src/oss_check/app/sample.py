@@ -43,7 +43,7 @@ def sample_report() -> Report:
              "판단보류", "등급표에 없는 라이선스임"),
     ]
     warnings = [
-        "Line 3: '-e .' - 지원하지 않는 옵션('-e')입니다.",
+        "3번째 줄: '-e .' - 지원하지 않는 옵션('-e')입니다.",
         "패키지 'sample-missing'의 정보를 가져오지 못했습니다 (조회 실패).",
     ]
     return Report("MIT", rows, warnings)

@@ -10,6 +10,7 @@ import pytest
 from app_fakes import INFOS, TEXT, CountingSource, RecordingIdentify, RecordingJudge
 from oss_check.__main__ import format_report, main
 from oss_check.app.sample import sample_report
+from oss_check.collect.parser import parse_requirements
 
 SRC = Path(__file__).resolve().parents[1] / "src"
 
@@ -39,7 +40,8 @@ def test_prints_counts_and_warnings(req_file, capsys):
     run([str(req_file)])
     out = capsys.readouterr().out
     assert "패키지 5개 (직접 3 · 따라온 2" in out
-    assert "Line 3" in out
+    # 경고 문구는 R1이 정함. parser가 낸 경고가 그대로 출력되는지만 봄
+    assert all(w in out for w in parse_requirements(TEXT)[1])
 
 
 def test_project_defaults_to_mit(req_file):

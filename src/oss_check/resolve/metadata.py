@@ -117,9 +117,6 @@ class LicenseResolver:
         operator = r"(?<!\S)(?:AND|OR|WITH)(?!\S)"
         if not re.search(operator, text, flags=re.IGNORECASE):
             return None
-        # 괄호를 제거해 부분 성공시키지 않는다. 괄호 해석은 FR-LIC-12 범위다.
-        if "(" in text or ")" in text:
-            return None
         choices: list[frozenset[str]] = []
         for alternative in re.split(r"(?<!\S)OR(?!\S)", text, flags=re.IGNORECASE):
             identifiers: set[str] = set()
@@ -127,6 +124,13 @@ class LicenseResolver:
                 parts = re.split(r"(?<!\S)WITH(?!\S)", term, flags=re.IGNORECASE)
                 if len(parts) > 2:
                     return None
+                # FR-LIC-07: 등록된 이름 속 괄호만 허용하고 그룹 괄호는 해석하지 않는다.
+                if "(" in parts[0] or ")" in parts[0]:
+                    if re.search(r"\(\s*\)", parts[0]):
+                        return None
+                    name = normalize_license_name(parts[0], first_line=False)
+                    if name not in self._aliases and name not in self._names:
+                        return None
                 identifier = self._convert(parts[0], first_line=False)
                 if identifier is None:
                     return None

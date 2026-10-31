@@ -3,6 +3,7 @@
 from dataclasses import replace
 
 from fastapi.testclient import TestClient
+from web_fakes import install_web_source
 
 from oss_check.app.sample import sample_report
 from oss_check.web.main import app
@@ -22,8 +23,9 @@ def test_restored_input_cannot_escape_textarea():
     assert "<script>" not in response.text
 
 
-def test_received_license_is_escaped():
+def test_received_license_is_escaped(monkeypatch):
     """QR-S-04: 직접 전송한 라이선스 값도 HTML로 실행되지 않음."""
+    install_web_source(monkeypatch)
     with TestClient(app) as client:
         response = client.post("/analyze", data={
             "dependency_text": "requests", "project_license": "<script>test</script>",

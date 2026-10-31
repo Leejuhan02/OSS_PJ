@@ -6,6 +6,7 @@ Docker 이미지 빌드·실행과 최종 인수 시나리오 통과를 대신�
 
 import pytest
 from fastapi.testclient import TestClient
+from web_fakes import install_web_source
 
 from oss_check.web.main import app
 
@@ -15,12 +16,13 @@ from oss_check.web.main import app
     [
         ("GET", "/", None, "의존성 라이선스·취약점 점검"),
         ("GET", "/preview", None, "실제 입력을 분석한 결과가 아닙니다"),
-        ("POST", "/analyze", {"dependency_text": "requests"}, "입력을 받았습니다"),
+        ("POST", "/analyze", {"dependency_text": "requests"}, "의존성 점검 결과"),
     ],
     ids=["home", "preview", "input-received"],
 )
 def test_template_renders_outside_repository(monkeypatch, tmp_path, method, path, data, expected):
     """DC-04: 실행 위치에 의존하지 않는 입력·예시·접수 화면을 확인함."""
+    install_web_source(monkeypatch)
     monkeypatch.chdir(tmp_path)
     with TestClient(app) as client:
         response = client.request(method, path, data=data)

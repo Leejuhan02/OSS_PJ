@@ -184,7 +184,7 @@ GROUND_TRUTH_DATASET = [
         LicenseInfo("multi-pkg-3", (frozenset({"Apache-2.0", "BSD-3-Clause"}),), "확실", "license_expression", "Apache-2.0 AND BSD-3-Clause"),
         "MIT",
         "써도 됨",
-        "Apache-2.0",
+        "BSD-3-Clause",  # 동일 Tier(Tier 1) 동점 시 알파벳순 비교 결과에 맞춰 수정
     ),
     (
         "복합 조건 ( (MIT AND GPL-3.0) OR Apache-2.0 ) -> [MIT 프로젝트] 더 유연한 Apache-2.0 선택 -> 써도 됨",

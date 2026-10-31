@@ -13,7 +13,7 @@
 
     <link
         rel="stylesheet"
-        href="/static/style.css"
+        href="/static/style.css?v=file-picker-2"
     >
 </head>
 
@@ -23,9 +23,15 @@
 
         {% if report is defined %}
         <header class="page-header">
+            {% if is_preview %}
             <span class="badge">예시 화면</span>
             <h1>의존성 점검 예시 결과</h1>
             <p>팀장이 제공한 가상 패키지 데이터입니다. 실제 입력을 분석한 결과가 아닙니다.</p>
+            {% else %}
+            <span class="badge">분석 결과</span>
+            <h1>의존성 점검 결과</h1>
+            <p>입력한 의존성 목록을 기준으로 확인한 결과입니다.</p>
+            {% endif %}
         </header>
 
         <section class="card">
@@ -67,7 +73,7 @@
 
             {% if report.warnings %}
             <section aria-labelledby="warnings-heading">
-                <h2 id="warnings-heading">예시 데이터의 경고</h2>
+                <h2 id="warnings-heading">{{ '예시 데이터의 경고' if is_preview else '분석 중 확인한 경고' }}</h2>
                 <ul>
                     {% for warning in report.warnings %}
                     <li>{{ warning }}</li>
@@ -80,8 +86,13 @@
         <p><a href="/">입력 화면으로 돌아가기</a></p>
         <footer class="notice">
             <p>이 결과는 법적 조언이 아닙니다.</p>
+            {% if is_preview %}
             <p>실제 분석에서 사용하는 데이터 출처: SPDX · PyPI · OSV</p>
             <p>이 예시 화면은 외부 서비스를 조회하지 않습니다.</p>
+            {% else %}
+            <p>라이선스 데이터 출처: SPDX · PyPI</p>
+            <p>취약점 데이터 출처: OSV (현재 취약점 조회는 연결되지 않았습니다.)</p>
+            {% endif %}
         </footer>
         {% else %}
         <header class="page-header">
@@ -101,11 +112,6 @@
         {% if input_error %}
         <p role="alert">{{ input_error }}</p>
         <p>파일을 사용하려면 파일은 다시 선택해 주세요.</p>
-        {% elif input_received %}
-        <div role="status">
-            <p>입력을 받았습니다. 실제 분석은 아직 연결되지 않았습니다.</p>
-            <p>프로젝트 라이선스: {{ received_license }}</p>
-        </div>
         {% endif %}
 
         <form
@@ -130,7 +136,7 @@
 
                 <label
                     for="dependency_file"
-                    class="file-label"
+                    class="input-label"
                 >
                     파일 선택
                 </label>
@@ -141,7 +147,9 @@
                     type="file"
                     name="dependency_file"
                     accept=".txt"
+                    aria-describedby="file-help"
                 >
+                <p id="file-help" class="file-help">선택한 파일명이 위에 표시됩니다. UTF-8 텍스트 파일, 최대 1MB.</p>
 
             </div>
 

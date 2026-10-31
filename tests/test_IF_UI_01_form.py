@@ -1,7 +1,8 @@
-"""IF-UI-01: 웹 폼 입력을 접수하고 분석 연결 전임을 안내함."""
+"""IF-UI-01: 웹 폼 입력으로 분석하고 결과를 표시함."""
 
 import pytest
 from fastapi.testclient import TestClient
+from web_fakes import install_web_source
 
 from oss_check.web.main import app
 
@@ -16,13 +17,15 @@ from oss_check.web.main import app
          {"dependency_file": ("requirements.txt", b"requests\n", "text/plain")}, "MIT"),
     ],
 )
-def test_form_accepts_input(data, files, expected):
+def test_form_accepts_input(monkeypatch, data, files, expected):
     """IF-UI-01: 파일 또는 텍스트와 프로젝트 라이선스를 받음."""
+    install_web_source(monkeypatch)
     with TestClient(app) as client:
         response = client.post("/analyze", data=data, files=files)
     assert response.status_code == 200
-    assert "입력을 받았습니다" in response.text
-    assert "실제 분석은 아직 연결되지 않았습니다" in response.text
+    assert "의존성 점검 결과" in response.text
+    assert "전체 2개" in response.text
+    assert "가상 패키지" not in response.text
     assert f"프로젝트 라이선스: {expected}" in response.text
 
 

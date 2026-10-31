@@ -4,6 +4,15 @@ import pytest
 from fastapi.testclient import TestClient
 
 from oss_check.web.main import app
+from oss_check.domain.models import Report
+from oss_check.web.routers import pages
+
+
+@pytest.fixture(autouse=True)
+def isolate_size_check(monkeypatch):
+    """크기 검사에서는 분석을 대체해 큰 문자열 해석과 외부 조회를 막음."""
+    monkeypatch.setattr(pages, "analyze", lambda text, *, project, source: Report(project),
+                        raising=False)
 
 
 @pytest.mark.parametrize("as_file", [False, True])

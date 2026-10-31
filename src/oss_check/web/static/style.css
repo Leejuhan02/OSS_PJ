@@ -137,10 +137,17 @@ body {
 /* 파일 선택 */
 
 .file-input {
-    display: none;
+    display: block;
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    background-color: #f9fafb;
+    color: #1f2937;
+    font: inherit;
 }
 
-.file-label {
+.file-input::file-selector-button {
     display: inline-block;
 
     padding: 10px 16px;
@@ -154,10 +161,23 @@ body {
 
     font-size: 14px;
     font-weight: 600;
+    margin-right: 12px;
 }
 
-.file-label:hover {
+.file-input::file-selector-button:hover {
     background-color: #f3f4f6;
+}
+
+.file-input:focus-visible {
+    outline: 2px solid #3157c8;
+    outline-offset: 3px;
+}
+
+.file-help {
+    margin: 8px 0 0;
+    color: #6b7280;
+    font-size: 13px;
+    line-height: 1.6;
 }
 
 

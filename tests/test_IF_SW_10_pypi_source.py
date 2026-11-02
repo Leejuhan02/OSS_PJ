@@ -53,6 +53,9 @@ def test_user_agent_is_sendable_header(monkeypatch):
         return MockResponse({"info": {}}, 200)
 
     monkeypatch.setattr(requests, "get", mock_get)
+
+    PyPIPackageSource._cache.clear()
+    
     PyPIPackageSource().fetch("requests")
     user_agent = sent["User-Agent"]
     user_agent.encode("ascii")                         # 한글이 있으면 여기서 UnicodeEncodeError
@@ -101,3 +104,36 @@ def test_fetch_timeout(monkeypatch, waits):
     assert adapter.fetch("timeout_pkg") is None
     assert call_count == 3
     assert waits == [1, 1]
+
+def test_fetch_invalid_json(monkeypatch):
+    """2번 요구사항: JSON이 아닌 응답 시 ValueError를 잡고 None 반환"""
+    class InvalidJsonResponse(MockResponse):
+        def json(self):
+            raise ValueError("Invalid JSON")
+
+    def mock_get(url, **kwargs):
+        return InvalidJsonResponse(None, 200)
+
+    monkeypatch.setattr(requests, "get", mock_get)
+    adapter = PyPIPackageSource()
+    assert adapter.fetch("invalid_json_pkg") is None
+
+def test_fetch_cache_24_hours(monkeypatch):
+    """4번 요구사항: 한 번 호출된 패키지는 24시간 이내 재호출 시 네트워크 요청 없이 캐시 반환"""
+    call_count = 0
+    def mock_get(url, **kwargs):
+        nonlocal call_count
+        call_count += 1
+        return MockResponse({"info": {"name": "cached_pkg", "version": "1.0.0"}}, 200)
+
+    monkeypatch.setattr(requests, "get", mock_get)
+    adapter = PyPIPackageSource()
+    
+    # 첫 번째 호출: 네트워크 통신 발생 (call_count 1)
+    adapter.fetch("cached_pkg")
+    assert call_count == 1
+    
+    # 두 번째 호출: 캐시에서 반환되므로 mock_get이 호출되지 않음 (call_count 유지)
+    result = adapter.fetch("cached_pkg")
+    assert result == {"name": "cached_pkg", "version": "1.0.0"}
+    assert call_count == 1

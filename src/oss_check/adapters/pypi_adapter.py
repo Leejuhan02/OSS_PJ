@@ -1,4 +1,5 @@
 import time
+from datetime import datetime, timedelta
 from typing import Final
 
 import requests
@@ -40,8 +41,18 @@ def retry_pypi(func):
     return wrapper
 
 class PyPIPackageSource(PackageSource):
+    # 4번 요구사항: 24시간 캐시 저장을 위한 딕셔너리
+    _cache = {}
+
     @retry_pypi
     def fetch(self, package_name: str) -> dict | None:
+        # 4번 요구사항: 캐시 확인 (저장된 지 24시간이 지나지 않은 데이터면 통신 없이 즉시 반환)
+        now = datetime.now()
+        if package_name in self._cache:
+            cached_data, timestamp = self._cache[package_name]
+            if now - timestamp < timedelta(hours=24):
+                return cached_data
+
         url = f"https://pypi.org/pypi/{package_name}/json"
         
         # CR-03: 프로젝트 이름과 연락처를 User-Agent에 포함 (값은 위의 USER_AGENT)
@@ -51,5 +62,15 @@ class PyPIPackageSource(PackageSource):
         response = requests.get(url, headers=headers, timeout=20)
         response.raise_for_status()
         
-        data = response.json()
-        return data.get("info", {})
+        # 2번 요구사항: PyPI가 JSON이 아닌 응답을 줄 때 ValueError 예외를 잡고 None 반환
+        try:
+            data = response.json()
+        except ValueError:
+            return None
+            
+        info = data.get("info", {})
+        
+        # 4번 요구사항: 성공적으로 가져온 새 데이터를 현재 시간과 함께 캐시에 저장
+        self._cache[package_name] = (info, now)
+        
+        return info

@@ -73,7 +73,7 @@ class TierRule: #10.09.20:22 규칙 순서를 바꿈
                 continue
 
             # AND 조건: 제약이 가장 센(tier 숫자가 가장 큰) 라이선스를 선택 (FR-JDG-04)
-            top = max(item_tiers, key=lambda item: item[0])          # AND = 가장 센 것 (FR-JDG-04)
+            top = max(item_tiers, key=lambda item: (item[0], item[1]))          # AND = 가장 센 것 (FR-JDG-04)
             
             if best is None or top[0] < best[0]:
                 best = top

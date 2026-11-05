@@ -105,6 +105,19 @@ class LicenseResolver:
             return "LicenseRef-" + reference.group(1)
         return self._aliases.get(normalized) or self._names.get(normalized)
 
+    def _canonicalize_named_terms(self, text: str) -> str:
+        """FR-LIC-07: 이름 속 or later 등을 실제 연산자로 나누기 전에 보호한다."""
+        text = re.sub(r"https?://[^\s<>\)\]]+", "", text, flags=re.IGNORECASE)
+        names = self._names | self._aliases
+        for name, identifier in sorted(names.items(), key=lambda item: len(item[0]), reverse=True):
+            if identifier is None or not re.search(r"\b(?:AND|OR|WITH)\b", name, re.IGNORECASE):
+                continue
+            spelling = r"\s+".join(re.escape(word) for word in name.split())
+            # 이름 전체가 피연산자 경계까지 일치해야 하며 원문(raw)은 바꾸지 않는다.
+            pattern = rf"(?<!\S){spelling}(?:\s+licen[cs]e)?(?=\s+(?:AND|OR|WITH)\b|\s*$)"
+            text = re.sub(pattern, identifier, text, flags=re.IGNORECASE)
+        return text
+
     def _expression(self, value: str, *, first_line: bool) -> tuple[frozenset[str], ...] | None:
         """FR-LIC-05·06: WITH → AND → OR 우선순위로 선택지를 구성한다."""
         text = value.strip()
@@ -114,6 +127,7 @@ class LicenseResolver:
         identifier = self._convert(text, first_line=False)
         if identifier is not None:
             return (frozenset({identifier}),)
+        text = self._canonicalize_named_terms(text)
         operator = r"(?<!\S)(?:AND|OR|WITH)(?!\S)"
         if not re.search(operator, text, flags=re.IGNORECASE):
             return None

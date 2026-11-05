@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+requests
+packaging
+jinja2
+python-multipart
+pydantic
+httpx
+pytest
+ruff
+sqlalchemy

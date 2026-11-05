@@ -17,5 +17,14 @@
   "MPL 2.0": "MPL-2.0",
   "Python Software Foundation License": "PSF-2.0",
   "PSF License": "PSF-2.0",
-  "Other/Proprietary License": "LicenseRef-Proprietary"
+  "Other/Proprietary License": "LicenseRef-Proprietary",
+  "3-Clause BSD License": "BSD-3-Clause",
+  "2-clause BSD": "BSD-2-Clause",
+  "Simplified BSD": "BSD-2-Clause",
+  "MIT License (MIT)": "MIT",
+  "The MIT License (MIT)": "MIT",
+  "GPLv2+": "GPL-2.0-or-later",
+  "The Unlicense (Unlicense)": "Unlicense",
+  "ZPL 2.1": "ZPL-2.1",
+  "License :: OSI Approved :: The Unlicense (Unlicense)": "Unlicense"
 }

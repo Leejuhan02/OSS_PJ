@@ -1,0 +1,162 @@
+# 사용자가 요청한 R2 Docker 실측 전용. PR #37의 앱·Dockerfile은 수정하지 않는다.
+name: R2 Docker PR37 verification
+
+on:
+  push:
+    branches: [feat/resolve-DR-03-docker-check]
+
+permissions:
+  contents: read
+
+jobs:
+  docker-at1:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: c286f52f7109e094600386b2524a238252796ac3
+          persist-credentials: false
+      - name: 검토한 PR 커밋으로 이미지 빌드
+        run: |
+          set -euo pipefail
+          mkdir -p evidence
+          test "$(git rev-parse HEAD)" = c286f52f7109e094600386b2524a238252796ac3
+          docker version > evidence/docker-version.txt
+          docker build --pull --progress=plain -t oss-check:r2-pr37 . 2>&1 | tee evidence/build.log
+          docker image inspect oss-check:r2-pr37 --format '{{.Id}}' > evidence/image-id.txt
+          docker image inspect python:3.11-slim --format '{{json .RepoDigests}}' > evidence/base-image.json
+      - name: 관리자 권한 없이 실제 컨테이너 시작
+        run: |
+          set -euo pipefail
+          docker run -d --name oss-check-r2-pr37 -p 127.0.0.1:18037:8000 oss-check:r2-pr37
+          test "$(docker exec oss-check-r2-pr37 id -u)" -ne 0
+          python - <<'PY'
+          import time, urllib.error, urllib.request
+          for attempt in range(40):
+              try:
+                  with urllib.request.urlopen('http://127.0.0.1:18037/', timeout=2) as response:
+                      assert response.status == 200
+                      break
+              except (urllib.error.URLError, TimeoutError):
+                  time.sleep(0.5)
+          else:
+              raise SystemExit('컨테이너 웹 서버가 시작되지 않음')
+          PY
+      - name: 설치 이미지의 별칭·R2 식별 확인
+        run: |
+          set -euo pipefail
+          docker exec -i oss-check-r2-pr37 python - <<'PY' | tee evidence/installed.json
+          import json, sys
+          from importlib.resources import files
+          from oss_check.resolve import identify
+          aliases = json.loads((files('oss_check') / 'data' / 'license_aliases.json').read_text(encoding='utf-8'))
+          assert len(aliases) == 50
+          result = identify('rfc3987', {'license': 'GNU GPLv3+'})
+          assert result.options == (frozenset({'GPL-3.0-or-later'}),)
+          print(json.dumps({'python': sys.version, 'aliases': len(aliases), 'identifier': 'GPL-3.0-or-later'}))
+          PY
+      - name: 실제 PyPI로 AT-1 웹·CLI·응답 시간 확인
+        run: |
+          python - <<'PY'
+          import json, re, subprocess, time, urllib.parse, urllib.request
+          from html.parser import HTMLParser
+          from pathlib import Path
+
+          root = 'http://127.0.0.1:18037'
+          output = Path('evidence')
+          base = Path('tests/fixtures/at1_webapp_requirements.txt').read_text(encoding='utf-8')
+          cases = [('webapp', base, (30, 11, 19, 0)),
+                   ('format', 'jsonschema[format]\n', (18, 1, 17, 0)),
+                   ('webapp_format', base + 'jsonschema[format]\n', (46, 12, 34, 0))]
+          html_verdict = re.compile(r'<h3>(안 됨|모름|조건 있음|판단보류|써도 됨) · ([a-z0-9][a-z0-9-]*)</h3>')
+          cli_verdict = re.compile(r'^\[(안 됨|모름|조건 있음|판단보류|써도 됨)\] ([a-z0-9][a-z0-9-]*)', re.M)
+
+          class Text(HTMLParser):
+              def __init__(self):
+                  super().__init__()
+                  self.parts = []
+              def handle_data(self, data):
+                  self.parts.append(data)
+
+          with urllib.request.urlopen(root + '/', timeout=10) as response:
+              assert response.status == 200
+              home = response.read().decode('utf-8')
+              assert 'dependency_text' in home and 'dependency_file' in home
+              (output / 'home.html').write_text(home, encoding='utf-8')
+          with urllib.request.urlopen(root + '/static/style.css', timeout=10) as response:
+              assert response.status == 200 and len(response.read()) > 0
+
+          results, errors = [], []
+          for label, text, expected in cases:
+              record = {'case': label}
+              try:
+                  body = urllib.parse.urlencode({'dependency_text': text, 'project_license': 'MIT'}).encode()
+                  request = urllib.request.Request(root + '/analyze', data=body)
+                  start = time.monotonic()
+                  with urllib.request.urlopen(request, timeout=240) as response:
+                      assert response.status == 200
+                      html = response.read().decode('utf-8')
+                  record['web_seconds'] = round(time.monotonic() - start, 3)
+                  (output / (label + '.html')).write_text(html, encoding='utf-8')
+                  parser = Text()
+                  parser.feed(html)
+                  visible = ' '.join(' '.join(parser.parts).split())
+                  count = re.search(r'전체 (\d+)개.*?직접 (\d+)개 · 따라온 (\d+)개 · 조회 실패 (\d+)개', visible)
+                  assert count, '화면의 패키지 집계를 읽지 못함'
+                  actual = tuple(map(int, count.groups()))
+                  record['counts'] = dict(zip(('total', 'direct', 'transitive', 'failed'), actual))
+                  assert actual == expected, (actual, expected)
+                  listed = html_verdict.findall(html)
+                  web = {name: verdict for verdict, name in listed}
+                  assert len(web) == actual[0]
+                  assert '법적 조언이 아닙니다' in visible
+                  assert all(source in visible for source in ('SPDX', 'PyPI', 'OSV'))
+                  if label == 'webapp':
+                      assert web['certifi'] == '조건 있음'
+                  else:
+                      assert web['rfc3987'] == '안 됨'
+                      assert listed[0] == ('안 됨', 'rfc3987')
+                      assert 'GPL-3.0-or-later' in html
+                      record['rfc3987'] = '안 됨 / GPL-3.0-or-later / 최상단'
+                  source = output / (label + '.txt')
+                  source.write_text(text, encoding='utf-8')
+                  destination = '/tmp/r2_' + label + '.txt'
+                  subprocess.run(['docker', 'cp', str(source), 'oss-check-r2-pr37:' + destination], check=True)
+                  cli = subprocess.run(['docker', 'exec', 'oss-check-r2-pr37', 'python', '-m', 'oss_check', destination],
+                                       capture_output=True, text=True, timeout=240)
+                  (output / (label + '-cli.txt')).write_text(cli.stdout + cli.stderr, encoding='utf-8')
+                  assert cli.returncode == 0, cli.stderr
+                  parsed_cli = {name: verdict for verdict, name in cli_verdict.findall(cli.stdout)}
+                  assert parsed_cli == web, '실제 웹·CLI 판정이 다름'
+                  record['web_cli_match'] = True
+                  if label == 'webapp':
+                      assert record['web_seconds'] <= 30, 'AT-1 최초 분석 30초 초과'
+                  record['passed'] = True
+              except Exception as error:
+                  record['passed'] = False
+                  record['error'] = repr(error)
+                  errors.append(label + ': ' + repr(error))
+              results.append(record)
+          summary = {'commit': 'c286f52f7109e094600386b2524a238252796ac3',
+                     'data_source': 'live PyPI via unmodified R4 adapter', 'cases': results, 'errors': errors}
+          (output / 'summary.json').write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding='utf-8')
+          print(json.dumps(summary, ensure_ascii=False, indent=2))
+          if errors:
+              raise SystemExit('Docker AT-1 검증 실패')
+          PY
+      - name: 실행 증거 수집
+        if: always()
+        run: |
+          mkdir -p evidence
+          docker logs oss-check-r2-pr37 > evidence/container.log 2>&1 || true
+          docker inspect oss-check-r2-pr37 --format '{{json .State}}' > evidence/container-state.json || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: r2-pr37-docker-evidence
+          path: evidence/
+          retention-days: 7
+      - name: 검증용 컨테이너 종료
+        if: always()
+        run: docker rm -f oss-check-r2-pr37 >/dev/null 2>&1 || true

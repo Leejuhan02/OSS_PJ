@@ -1,10 +1,10 @@
 import time
-from datetime import datetime, timedelta
 from typing import Final
 
 import requests
 from requests.exceptions import HTTPError, Timeout, RequestException
 from oss_check.domain.ports import PackageSource  # 설계지침 §4.2: 외부 ABC 상속
+from oss_check.adapters.cache import cache_24_hours  # 새로 분리한 데코레이터 불러오기
 
 # CR-03: 외부 요청의 User-Agent 에 프로젝트 이름과 연락처(저장소 주소)를 넣음
 # [강의] 함수 어노테이션 — typing.Final
@@ -41,18 +41,10 @@ def retry_pypi(func):
     return wrapper
 
 class PyPIPackageSource(PackageSource):
-    # 4번 요구사항: 24시간 캐시 저장을 위한 딕셔너리
-    _cache = {}
-
+    
+    @cache_24_hours  # 추가 점수: 데코레이터 적용 (캐시 로직을 외부로 분리)
     @retry_pypi
     def fetch(self, package_name: str) -> dict | None:
-        # 4번 요구사항: 캐시 확인 (저장된 지 24시간이 지나지 않은 데이터면 통신 없이 즉시 반환)
-        now = datetime.now()
-        if package_name in self._cache:
-            cached_data, timestamp = self._cache[package_name]
-            if now - timestamp < timedelta(hours=24):
-                return cached_data
-
         url = f"https://pypi.org/pypi/{package_name}/json"
         
         # CR-03: 프로젝트 이름과 연락처를 User-Agent에 포함 (값은 위의 USER_AGENT)
@@ -69,8 +61,5 @@ class PyPIPackageSource(PackageSource):
             return None
             
         info = data.get("info", {})
-        
-        # 4번 요구사항: 성공적으로 가져온 새 데이터를 현재 시간과 함께 캐시에 저장
-        self._cache[package_name] = (info, now)
         
         return info

@@ -25,7 +25,7 @@ jobs:
           docker version > evidence/docker-version.txt
           docker build --pull --progress=plain -t oss-check:r2-pr37 . 2>&1 | tee evidence/build.log
           docker image inspect oss-check:r2-pr37 --format '{{.Id}}' > evidence/image-id.txt
-          docker image inspect python:3.11-slim --format '{{json .RepoDigests}}' > evidence/base-image.json
+          # BuildKit의 베이스 이미지 digest는 build.log에 남으며 로컬 태그는 없을 수 있다.
       - name: 관리자 권한 없이 실제 컨테이너 시작
         run: |
           set -euo pipefail

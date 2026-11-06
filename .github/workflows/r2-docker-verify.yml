@@ -38,7 +38,7 @@ jobs:
                   with urllib.request.urlopen('http://127.0.0.1:18037/', timeout=2) as response:
                       assert response.status == 200
                       break
-              except (urllib.error.URLError, TimeoutError):
+              except OSError:
                   time.sleep(0.5)
           else:
               raise SystemExit('컨테이너 웹 서버가 시작되지 않음')

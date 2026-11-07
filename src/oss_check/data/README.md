@@ -7,9 +7,10 @@
 - `spdx_licenses.json`: 공식 SPDX 3.29.0 라이선스 목록 원본, 740개 ID (폐기된 ID 포함).
   출처: https://raw.githubusercontent.com/spdx/license-list-data/v3.29.0/json/licenses.json
   목록 안내: https://spdx.org/licenses/
-- `license_aliases.json`: 팀 초기 별칭 사전. 코드를 수정하지 않고 보강할 수 있음.
+- `license_aliases.json`: 별칭 50개(정규화 후 서로 다른 키 49개). 코드를 수정하지 않고 보강할 수 있음.
   이름만으로 버전을 알 수 없는 `BSD License`, `GPL License`, `Apache License` 등은 추측해서 매핑하지 않음.
-  필수 40종(DR-03), 권장 80종(DR-06) 및 변환율(QR-A-02)은 후속 작업임.
+  필수 40종(DR-03)을 충족함. 권장 80종(DR-06), 상위 3,000개 변환율(QR-A-02)은 후속 작업임.
+  추가 표기의 근거와 버전 구분은 [license_aliases.md](license_aliases.md)를 참고함.
 
 - `spdx_exceptions.json`: 공식 SPDX 3.29.0 예외 목록 원본, 86개 ID.
   출처: https://raw.githubusercontent.com/spdx/license-list-data/v3.29.0/json/exceptions.json

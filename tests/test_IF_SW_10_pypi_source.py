@@ -4,6 +4,11 @@ from requests.exceptions import Timeout
 from oss_check.adapters import pypi_adapter
 from oss_check.adapters.pypi_adapter import PyPIPackageSource
 
+# 새로 추가: 모든 테스트가 실행되기 직전에 자동으로 캐시를 비워주는 장치 (순서 의존성 완벽 해결)
+@pytest.fixture(autouse=True)
+def clear_cache_before_each_test():
+    if hasattr(PyPIPackageSource.fetch, "cache_clear"):
+        PyPIPackageSource.fetch.cache_clear()
 
 # [강의] 테스트 패턴 — 가짜 객체
 #   - monkeypatch 로 time.sleep 을 「기다린 초를 목록에 적기만 하는 함수」로 바꿈
@@ -54,7 +59,7 @@ def test_user_agent_is_sendable_header(monkeypatch):
 
     monkeypatch.setattr(requests, "get", mock_get)
 
-    PyPIPackageSource._cache.clear()
+    # (이 자리에 있던 구형 캐시 삭제 코드인 PyPIPackageSource._cache.clear()는 제거되었습니다)
     
     PyPIPackageSource().fetch("requests")
     user_agent = sent["User-Agent"]

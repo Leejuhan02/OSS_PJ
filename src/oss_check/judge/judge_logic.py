@@ -1,4 +1,5 @@
 # [강의] L05 FCF 디자인 패턴 / L06 사용자 정의 Callable (__call__) / L07 키워드 전용 인수
+# [강의] collections.abc 모듈의 Callable 추상 베이스 클래스(ABC) (06주차)
 from collections.abc import Callable
 import importlib.resources
 import json
@@ -8,6 +9,7 @@ from typing import Optional
 from oss_check.domain.models import Judgement, LicenseInfo
 
 # JSON 등급표 파일 읽기 (DR-04) - 설계지침 v1.2 §4.4 규칙 준수 (importlib.resources 사용)
+# [강의] Function Annotations - 반환값 타입 힌트 (02주차)
 def load_tiers() -> dict[str, int]:
     try:
         # AGENTS.md 및 설계지침 §4.4: Python 3.11 호환을 위해 / 연산자 사용 (joinpath 인수 다중 전달 금지)
@@ -24,6 +26,7 @@ def load_tiers() -> dict[str, int]:
         raise FileNotFoundError(f"등급표(tiers.json)를 읽을 수 없습니다: {e}")
 
 TIERS: dict[str, int] = load_tiers()
+# [강의] 일급 객체(First-Class Function)로서의 함수 타입 정의 및 ABC (02주차, 06주차)
 Rule = Callable[[LicenseInfo, int], Optional[Judgement]]
 
 
@@ -43,9 +46,10 @@ def rule_proprietary(lic: LicenseInfo, project_tier: int) -> Optional[Judgement]
                     )
     return None
 
-
+# [강의] Function Annotations 및 함수 기반 전략 패턴(Strategy Pattern)의 개별 전략 함수 (02주차, 03주차)
 def rule_unknown(lic: LicenseInfo, project_tier: int) -> Optional[Judgement]:
     """FR-JDG-07 & FR-JDG-11: 신뢰 수준이 '미상'이거나 표기가 없으면 '모름'으로 판정"""
+    # [강의] 싱글톤(None) 비교를 위한 정체성(identity) 연산자 'is' 사용 (05주차)
     if lic.options is None:
         return Judgement(
             lic.package,
@@ -55,9 +59,11 @@ def rule_unknown(lic: LicenseInfo, project_tier: int) -> Optional[Judgement]:
         )
     return None
 
-
+# [강의] __call__ 메서드를 구현한 사용자 정의 Callable 타입 및 상태를 유지하는 전략 객체 (02주차, 03주차, 06주차)
+# [강의] 싱글톤(None) 비교를 위한 정체성 연산자 'is', 'is not' 사용 (05주차)
 class TierRule: #10.09.20:22 규칙 순서를 바꿈
     def __init__(self, tiers: dict[str, int]):
+        # [강의] 객체 참조(Object Reference) 바인딩 (05주차)
         self._tiers = tiers
 
     def __call__(self, lic: LicenseInfo, project_tier: int) -> Judgement | None:
@@ -73,6 +79,7 @@ class TierRule: #10.09.20:22 규칙 순서를 바꿈
                 continue
 
             # AND 조건: 제약이 가장 센(tier 숫자가 가장 큰) 라이선스를 선택 (FR-JDG-04)
+            # [강의] 고차 함수(Higher-Order Function)와 익명 함수(lambda) (02주차)
             top = max(item_tiers, key=lambda item: (item[0], item[1]))          # AND = 가장 센 것 (FR-JDG-04)
             
             if best is None or top[0] < best[0]:
@@ -94,13 +101,16 @@ class TierRule: #10.09.20:22 규칙 순서를 바꿈
 
 
 # 전략 목록 구성 (우선순위 순서 엄격 적용: FR-JDG-09 -> 07 -> 08 -> 05 -> 06)
+# [강의] 일급 객체(함수 및 Callable 인스턴스)를 리스트에 저장하는 전략 패턴 및 덕 타이핑(Duck Typing) (02주차, 03주차, 06주차)
 RULES: list[Rule] = [rule_proprietary, rule_unknown, TierRule(TIERS)]
 
 
 # [강의] L07 키워드 전용 인수 - project는 반드시 키워드로 전달받음
+# [강의] 키워드 전용 매개변수(*, project) 및 Function Annotations (02주차)
 def judge(lic: LicenseInfo, *, project: str) -> Judgement:
     """메인 판정 함수"""
     project_tier = TIERS.get(project, 1)  # 내 프로젝트 라이선스 등급 (기본값: MIT 등급 1)
+    # [강의] 전략 패턴 실행 및 덕 타이핑(동일 호출 프로토콜 rule(...) 사용) (03주차, 06주차)
     for rule in RULES:
         if (result := rule(lic, project_tier)) is not None:
             return result

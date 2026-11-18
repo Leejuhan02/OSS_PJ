@@ -111,7 +111,19 @@ def judge(lic: LicenseInfo, *, project: str) -> Judgement:
     """메인 판정 함수"""
     project_tier = TIERS.get(project, 1)  # 내 프로젝트 라이선스 등급 (기본값: MIT 등급 1)
     # [강의] 전략 패턴 실행 및 덕 타이핑(동일 호출 프로토콜 rule(...) 사용) (03주차, 06주차)
+    result: Judgement | None = None
     for rule in RULES:
-        if (result := rule(lic, project_tier)) is not None:
-            return result
-    return Judgement(lic.package, "써도 됨", "사용 가능", None)
+        result = rule(lic, project_tier)
+        if result is not None:
+            break
+    if result is None:
+        result = Judgement(lic.package, "써도 됨", "사용 가능", None)
+
+    if lic.confidence == "추정":
+        return Judgement(
+            result.package,
+            result.verdict,
+            f"{result.reason} (신뢰 수준: 추정)",
+            result.decisive_license,
+        )
+    return result

@@ -1,0 +1,555 @@
+[
+  {
+    "description": "독점 라이선스 식별자 (LicenseRef-Private)",
+    "license": {
+      "package": "proprietary-pkg",
+      "options": [
+        [
+          "LicenseRef-Private"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "LicenseRef-Private"
+    },
+    "project": "MIT",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "LicenseRef-Private",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "독점 라이선스 식별자 대소문자 혼용 (licenseref-custom)",
+    "license": {
+      "package": "custom-proprietary",
+      "options": [
+        [
+          "licenseref-custom"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "licenseref-custom"
+    },
+    "project": "GPL-3.0-only",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "licenseref-custom",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "라이선스 정보 없음 (options=None) -> 모름",
+    "license": {
+      "package": "unknown-pkg",
+      "options": null,
+      "confidence": "미상",
+      "origin": "none",
+      "raw": ""
+    },
+    "project": "Apache-2.0",
+    "expected_verdict": "모름",
+    "expected_decisive_license": null,
+    "expected_reason_contains": null
+  },
+  {
+    "description": "등급표(tiers.json) 미등록 커스텀 라이선스 -> 판단보류",
+    "license": {
+      "package": "custom-open-pkg",
+      "options": [
+        [
+          "Custom-Open-1.0"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "Custom-Open-1.0"
+    },
+    "project": "BSD-3-Clause",
+    "expected_verdict": "판단보류",
+    "expected_decisive_license": null,
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[MIT 프로젝트] Permissive (Apache-2.0, Tier 1) -> 써도 됨",
+    "license": {
+      "package": "urllib3",
+      "options": [
+        [
+          "Apache-2.0"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "Apache-2.0"
+    },
+    "project": "MIT",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "Apache-2.0",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[MIT 프로젝트] Weak Copyleft (LGPL-2.1-only, Tier 2) -> 조건 있음",
+    "license": {
+      "package": "certifi-lgpl",
+      "options": [
+        [
+          "LGPL-2.1-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "LGPL-2.1-only"
+    },
+    "project": "MIT",
+    "expected_verdict": "조건 있음",
+    "expected_decisive_license": "LGPL-2.1-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[MIT 프로젝트] Weak Copyleft (MPL-2.0, Tier 2) -> 조건 있음",
+    "license": {
+      "package": "certifi-mpl",
+      "options": [
+        [
+          "MPL-2.0"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "MPL-2.0"
+    },
+    "project": "MIT",
+    "expected_verdict": "조건 있음",
+    "expected_decisive_license": "MPL-2.0",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[MIT 프로젝트] Strong Copyleft (GPL-3.0-only, Tier 3) -> 안 됨",
+    "license": {
+      "package": "gpl-pkg",
+      "options": [
+        [
+          "GPL-3.0-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "GPL-3.0-only"
+    },
+    "project": "MIT",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "GPL-3.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[MIT 프로젝트] Network Copyleft (AGPL-3.0-only, Tier 4) -> 안 됨",
+    "license": {
+      "package": "agpl-pkg",
+      "options": [
+        [
+          "AGPL-3.0-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "AGPL-3.0-only"
+    },
+    "project": "MIT",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "AGPL-3.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[Apache-2.0 프로젝트] Permissive (BSD-3-Clause, Tier 1) -> 써도 됨",
+    "license": {
+      "package": "numpy",
+      "options": [
+        [
+          "BSD-3-Clause"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "BSD-3-Clause"
+    },
+    "project": "Apache-2.0",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "BSD-3-Clause",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[Apache-2.0 프로젝트] Weak Copyleft (LGPL-3.0-only, Tier 2) -> 조건 있음",
+    "license": {
+      "package": "lgpl3-pkg",
+      "options": [
+        [
+          "LGPL-3.0-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "LGPL-3.0-only"
+    },
+    "project": "Apache-2.0",
+    "expected_verdict": "조건 있음",
+    "expected_decisive_license": "LGPL-3.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[BSD-3-Clause 프로젝트] Strong Copyleft (GPL-2.0-only, Tier 3) -> 안 됨",
+    "license": {
+      "package": "gpl2-pkg",
+      "options": [
+        [
+          "GPL-2.0-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "GPL-2.0-only"
+    },
+    "project": "BSD-3-Clause",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "GPL-2.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[LGPL-2.1-only 프로젝트] Permissive (MIT, Tier 1) -> 써도 됨",
+    "license": {
+      "package": "requests",
+      "options": [
+        [
+          "MIT"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "MIT"
+    },
+    "project": "LGPL-2.1-only",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "MIT",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[LGPL-2.1-only 프로젝트] 동급 Weak Copyleft (MPL-2.0, Tier 2) -> 써도 됨",
+    "license": {
+      "package": "mpl-lib",
+      "options": [
+        [
+          "MPL-2.0"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "MPL-2.0"
+    },
+    "project": "LGPL-2.1-only",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "MPL-2.0",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[LGPL-2.1-only 프로젝트] Strong Copyleft (GPL-3.0-only, Tier 3) -> 안 됨",
+    "license": {
+      "package": "gpl-tool",
+      "options": [
+        [
+          "GPL-3.0-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "GPL-3.0-only"
+    },
+    "project": "LGPL-2.1-only",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "GPL-3.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[GPL-3.0-only 프로젝트] Permissive (Apache-2.0, Tier 1) -> 써도 됨",
+    "license": {
+      "package": "apache-lib",
+      "options": [
+        [
+          "Apache-2.0"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "Apache-2.0"
+    },
+    "project": "GPL-3.0-only",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "Apache-2.0",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[GPL-3.0-only 프로젝트] Weak Copyleft (LGPL-3.0-only, Tier 2) -> 써도 됨",
+    "license": {
+      "package": "lgpl-lib",
+      "options": [
+        [
+          "LGPL-3.0-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "LGPL-3.0-only"
+    },
+    "project": "GPL-3.0-only",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "LGPL-3.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[GPL-3.0-only 프로젝트] 동급 Strong Copyleft (GPL-3.0-only, Tier 3) -> 써도 됨",
+    "license": {
+      "package": "gpl-lib",
+      "options": [
+        [
+          "GPL-3.0-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "GPL-3.0-only"
+    },
+    "project": "GPL-3.0-only",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "GPL-3.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "[GPL-3.0-only 프로젝트] Network Copyleft (AGPL-3.0-only, Tier 4) -> 안 됨",
+    "license": {
+      "package": "agpl-tool",
+      "options": [
+        [
+          "AGPL-3.0-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "AGPL-3.0-only"
+    },
+    "project": "GPL-3.0-only",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "AGPL-3.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "OR 조건 (GPL-3.0-only OR MIT) -> [MIT 프로젝트] 약한 조건 MIT 선택 -> 써도 됨",
+    "license": {
+      "package": "dual-pkg-1",
+      "options": [
+        [
+          "GPL-3.0-only"
+        ],
+        [
+          "MIT"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "GPL-3.0-only OR MIT"
+    },
+    "project": "MIT",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "MIT",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "OR 조건 (AGPL-3.0-only OR LGPL-2.1-only) -> [Apache-2.0 프로젝트] 약한 조건 LGPL 선택 -> 조건 있음",
+    "license": {
+      "package": "dual-pkg-2",
+      "options": [
+        [
+          "AGPL-3.0-only"
+        ],
+        [
+          "LGPL-2.1-only"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "AGPL-3.0-only OR LGPL-2.1-only"
+    },
+    "project": "Apache-2.0",
+    "expected_verdict": "조건 있음",
+    "expected_decisive_license": "LGPL-2.1-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "AND 조건 (MIT AND GPL-3.0-only) -> [MIT 프로젝트] 강한 조건 GPL 적용 -> 안 됨",
+    "license": {
+      "package": "multi-pkg-1",
+      "options": [
+        [
+          "GPL-3.0-only",
+          "MIT"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "MIT AND GPL-3.0-only"
+    },
+    "project": "MIT",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "GPL-3.0-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "AND 조건 (MIT AND LGPL-2.1-only) -> [Apache-2.0 프로젝트] 강한 조건 LGPL 적용 -> 조건 있음",
+    "license": {
+      "package": "multi-pkg-2",
+      "options": [
+        [
+          "LGPL-2.1-only",
+          "MIT"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "MIT AND LGPL-2.1-only"
+    },
+    "project": "Apache-2.0",
+    "expected_verdict": "조건 있음",
+    "expected_decisive_license": "LGPL-2.1-only",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "AND 조건 (Apache-2.0 AND BSD-3-Clause) -> [MIT 프로젝트] 둘 다 Tier 1 -> 써도 됨",
+    "license": {
+      "package": "multi-pkg-3",
+      "options": [
+        [
+          "Apache-2.0",
+          "BSD-3-Clause"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "Apache-2.0 AND BSD-3-Clause"
+    },
+    "project": "MIT",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "BSD-3-Clause",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "복합 조건 ( (MIT AND GPL-3.0) OR Apache-2.0 ) -> [MIT 프로젝트] 더 유연한 Apache-2.0 선택 -> 써도 됨",
+    "license": {
+      "package": "complex-pkg",
+      "options": [
+        [
+          "GPL-3.0-only",
+          "MIT"
+        ],
+        [
+          "Apache-2.0"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "(MIT AND GPL-3.0-only) OR Apache-2.0"
+    },
+    "project": "MIT",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "Apache-2.0",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "Estimated license verdict includes confidence note",
+    "license": {
+      "package": "estimated-mit",
+      "options": [
+        [
+          "MIT"
+        ]
+      ],
+      "confidence": "추정",
+      "origin": "license",
+      "raw": "MIT"
+    },
+    "project": "MIT",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "MIT",
+    "expected_reason_contains": "추정"
+  },
+  {
+    "description": "Estimated proprietary verdict includes confidence note",
+    "license": {
+      "package": "estimated-proprietary",
+      "options": [
+        [
+          "LicenseRef-Private"
+        ]
+      ],
+      "confidence": "추정",
+      "origin": "license",
+      "raw": "LicenseRef-Private"
+    },
+    "project": "MIT",
+    "expected_verdict": "안 됨",
+    "expected_decisive_license": "LicenseRef-Private",
+    "expected_reason_contains": "추정"
+  },
+  {
+    "description": "퍼블릭 도메인 등급 CC0-1.0 -> MIT 프로젝트에서 써도 됨",
+    "license": {
+      "package": "public-domain-package",
+      "options": [
+        [
+          "CC0-1.0"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "CC0-1.0"
+    },
+    "project": "MIT",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "CC0-1.0",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "OR 조건 (Custom-Open-1.0 OR MIT) -> 등급표에 있는 MIT 선택",
+    "license": {
+      "package": "dual-custom-mit",
+      "options": [
+        [
+          "Custom-Open-1.0"
+        ],
+        [
+          "MIT"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "Custom-Open-1.0 OR MIT"
+    },
+    "project": "MIT",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "MIT",
+    "expected_reason_contains": null
+  },
+  {
+    "description": "AND 조건 (MIT AND LGPL-2.1-only) -> LGPL 프로젝트에서 써도 됨",
+    "license": {
+      "package": "lgpl-mit-combination",
+      "options": [
+        [
+          "LGPL-2.1-only",
+          "MIT"
+        ]
+      ],
+      "confidence": "확실",
+      "origin": "license_expression",
+      "raw": "MIT AND LGPL-2.1-only"
+    },
+    "project": "LGPL-2.1-only",
+    "expected_verdict": "써도 됨",
+    "expected_decisive_license": "LGPL-2.1-only",
+    "expected_reason_contains": null
+  }
+]

@@ -303,14 +303,43 @@ select:focus {
 }
 
 
-.result-item {
-    padding: 16px 0;
-    border-top: 1px solid #e5e7eb;
-    overflow-wrap: anywhere;
+/* 결과만 넓혀 기존 입력 화면의 폭은 유지함 (FR-OUT-01~04, IF-UI-03). */
+.results-container { max-width: 1320px; padding-top: 36px; }
+.results-card { padding: 24px; }
+.result-summary {
+    display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px;
+    margin-bottom: 24px; padding: 16px 20px;
+    background: #eef3ff; border-radius: 8px;
 }
-
-.result-item p {
-    line-height: 1.6;
+.result-summary h2 { margin: 0; font-size: 23px; color: #2646a5; }
+.result-summary p { margin: 0; line-height: 1.6; }
+.result-table { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 14px; }
+.package-column { width: 24%; }
+.version-column { width: 10%; }
+.kind-column { width: 12%; }
+.license-column { width: 18%; }
+.confidence-column { width: 9%; }
+.reason-column { width: 27%; }
+.result-table th, .result-table td {
+    padding: 14px 12px; text-align: left; vertical-align: top;
+    border-bottom: 1px solid #e5e7eb; overflow-wrap: anywhere; line-height: 1.6;
+}
+.result-table thead th { background: #3157c8; color: white; font-weight: 600; }
+.result-table h3 { margin: 0; font-size: 14px; line-height: 1.6; }
+.result-table tbody th { border-left: 4px solid transparent; }
+.verdict-blocked th { border-left-color: #b42318 !important; color: #a61b14; background: #fff3f2; }
+.verdict-unknown th { border-left-color: #64748b !important; background: #f3f4f6; }
+.verdict-conditional th { border-left-color: #b56900 !important; color: #8a4b00; background: #fff8e9; }
+.verdict-pending th { border-left-color: #7c3aed !important; background: #f5f0ff; }
+.verdict-allowed th { border-left-color: #26734d !important; color: #20623f; background: #f1faf5; }
+.back-link {
+    display: inline-block; padding: 10px 16px; border: 1px solid #3157c8;
+    border-radius: 8px; color: #2646a5; text-decoration: none; font-weight: 600;
+}
+.back-link:hover { background: #e8efff; }
+.visually-hidden {
+    position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+    overflow: hidden; clip-path: inset(50%); white-space: nowrap;
 }
 
 /* 허용 항목은 기본으로 접고 필요할 때 펼침 */
@@ -324,6 +353,14 @@ select:focus {
     cursor: pointer;
     font-weight: 600;
     padding: 8px 0;
+    margin-bottom: 12px;
+    color: #2646a5;
+}
+
+@media (min-width: 601px) and (max-width: 900px) {
+    .results-container { padding-left: 16px; padding-right: 16px; }
+    .results-card { padding: 16px; }
+    .result-table th, .result-table td { padding: 10px 7px; }
 }
 
 .allowed-results summary:focus-visible {
@@ -346,5 +383,16 @@ select:focus {
     .card {
         padding: 22px;
     }
+
+    /* 좁은 화면은 항목별 라벨을 표시해 가로 넘침을 방지함. */
+    .result-summary { display: block; padding: 14px; }
+    .result-summary p { margin-top: 8px; }
+    .result-table, .result-table tbody { display: block; }
+    .result-table colgroup { display: none; }
+    .result-table thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+    .result-table tr { display: block; margin-bottom: 16px; border: 1px solid #e5e7eb; }
+    .result-table tbody th { display: block; padding: 12px; }
+    .result-table td { display: grid; grid-template-columns: 80px minmax(0, 1fr); gap: 8px; padding: 8px 12px; }
+    .result-table td::before { content: attr(data-label); font-weight: 600; color: #4b5563; }
 
 }

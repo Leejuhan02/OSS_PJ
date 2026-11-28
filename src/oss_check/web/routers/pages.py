@@ -23,6 +23,9 @@ WEB_DIR = Path(__file__).resolve().parent.parent
 templates = Jinja2Templates(directory=str(WEB_DIR / "templates"))
 
 
+# [강의] L08 함수 어노테이션
+#   - 웹 함수가 받는 요청과 돌려주는 응답의 타입을 적었다.
+#   - Request와 HTMLResponse처럼 입출력이 무엇인지 함수 선언에서 확인할 수 있다.
 @router.get("/", response_class=HTMLResponse)
 async def home(request: Request) -> HTMLResponse:
     return templates.TemplateResponse(

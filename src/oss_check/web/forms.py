@@ -34,6 +34,9 @@ class MemoryFormParser(MultiPartParser):
         super().on_part_data(data, start, end)
 
 
+# [강의] L08 함수 어노테이션
+#   - 요청을 받아 폼 데이터로 돌려주는 함수라 Request와 FormData로 표시했다.
+#   - 아래 스트림 함수도 bytes를 차례로 내보낸다는 점을 타입으로 적었다.
 async def read_form(request: Request) -> FormData:
     """폼을 크기 제한 내에서 읽으며 업로드 내용을 로그에 남기지 않음."""
     async def bounded_stream() -> AsyncGenerator[bytes, None]:
